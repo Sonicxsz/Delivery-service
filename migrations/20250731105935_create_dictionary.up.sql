@@ -1,0 +1,5 @@
+CREATE TABLE dictionary (
+    id BIGSERIAL NOT NULL PRIMARY KEY,
+    arabic VARCHAR NOT NULL,
+    russian VARCHAR NOT NULL
+)
