@@ -1,6 +1,9 @@
 package handlers
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 type Message[T any] struct {
 	Message string `json:"message"`
@@ -28,4 +31,20 @@ func NewErrorMessage(msg string, code int) *Message[interface{}] {
 
 func initHeaders(w http.ResponseWriter) {
 	w.Header().Set("Content-type", "application/json")
+}
+
+func OnJsonDataParseError(w http.ResponseWriter) {
+	w.WriteHeader(400)
+	json.NewEncoder(w).Encode(NewErrorMessage(
+		"Cannot parse data, please check provided user data",
+		400,
+	))
+}
+
+func OnDbError(w http.ResponseWriter) {
+	w.WriteHeader(500)
+	json.NewEncoder(w).Encode(NewErrorMessage(
+		"Somethink went wrong, please try later...",
+		500,
+	))
 }

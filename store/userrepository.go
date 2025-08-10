@@ -25,6 +25,20 @@ func (ur *UserRepository) Create(u *model.User) (*model.User, error) {
 	return u, nil
 }
 
-func (ur *UserRepository) FindByEmail() {
+func (ur *UserRepository) FindByEmail(email string) (*model.User, bool, error) {
+	query := fmt.Sprintf("SELECT id, name, password, email FROM %s WHERE email = $1", table)
 
+	user := model.User{}
+
+	err := ur.store.db.QueryRow(context.Background(), query, email).Scan(&user.Id, &user.Name, &user.Password, &user.Email)
+
+	if err != nil {
+		return nil, false, err
+	}
+
+	if user.Id == "" {
+		return nil, false, nil
+	}
+
+	return &user, true, nil
 }
