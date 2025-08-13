@@ -44,7 +44,7 @@ func NewJwtMiddleware(config *JWTConfig) *jwtmiddleware.JWTMiddleware {
 		config.Issuer,
 		[]string{config.Audience},
 		validator.WithCustomClaims(func() validator.CustomClaims {
-			return &CustomClaims{} // ← Это критически важно
+			return &CustomClaims{}
 		}),
 	)
 
@@ -59,7 +59,7 @@ func GetClaimsFromContext(r *http.Request) (*CustomClaims, error) {
 	token := r.Context().Value(jwtmiddleware.ContextKey{})
 
 	if token == nil {
-		return nil, errors.New("no token found")
+		return nil, errors.New("token not found")
 	}
 
 	claims, ok := token.(*validator.ValidatedClaims)
@@ -78,23 +78,3 @@ func GetClaimsFromContext(r *http.Request) (*CustomClaims, error) {
 
 	return customClaims, nil
 }
-
-// func GetClaimsFromContext(r *http.Request) (*CustomClaims, error) {
-// 	token := r.Context().Value(jwtmiddleware.ContextKey{})
-// 	if token == nil {
-// 		return nil, errors.New("no token found")
-// 	}
-
-// 	claims, ok := token.(*validator.ValidatedClaims)
-// 	if !ok {
-// 		return nil, errors.New("invalid claims type (expected ValidatedClaims)")
-// 	}
-
-// customClaims, ok := claims.CustomClaims.(*CustomClaims)
-// if !ok {
-// 	return nil, errors.New("invalid custom claims type")
-// }
-
-// 	log.Printf("Decoded claims: %+v", customClaims)
-// 	return customClaims, nil
-// }
