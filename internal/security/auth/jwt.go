@@ -1,9 +1,10 @@
-package middlewares
+package security
 
 import (
 	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
@@ -77,4 +78,19 @@ func GetClaimsFromContext(r *http.Request) (*CustomClaims, error) {
 	}
 
 	return customClaims, nil
+}
+
+func GenerateJWT(id string, jwtConfig *JWTConfig) (string, error) {
+	claims := CustomClaims{
+		UserID: id,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(2 * time.Hour)),
+			Issuer:    jwtConfig.Issuer,
+			Audience:  []string{jwtConfig.Audience},
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString([]byte(jwtConfig.SecretJWTKey))
 }

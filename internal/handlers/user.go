@@ -1,15 +1,11 @@
 package handlers
 
 import (
-	"arabic/internal/middlewares"
 	"arabic/internal/model"
+	security "arabic/internal/security/auth"
 	"arabic/store"
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"time"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func CreateUser(repo *store.UserRepository) http.HandlerFunc {
@@ -40,7 +36,7 @@ func CreateUser(repo *store.UserRepository) http.HandlerFunc {
 	}
 }
 
-func Login(repo *store.UserRepository, jwtConfig *middlewares.JWTConfig) http.HandlerFunc {
+func Login(repo *store.UserRepository, jwtConfig *security.JWTConfig) http.HandlerFunc {
 	type Request struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -69,30 +65,17 @@ func Login(repo *store.UserRepository, jwtConfig *middlewares.JWTConfig) http.Ha
 			return
 		}
 
-		w.WriteHeader(200)
-
-		claims := middlewares.CustomClaims{
-			UserID: u.Id,
-			RegisteredClaims: jwt.RegisteredClaims{
-				ExpiresAt: jwt.NewNumericDate(time.Now().Add(2 * time.Hour)),
-				Issuer:    jwtConfig.Issuer,
-				Audience:  []string{jwtConfig.Audience},
-			},
-		}
-
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-		tokenString, err := token.SignedString([]byte(jwtConfig.SecretJWTKey))
-
+		token, err := security.GenerateJWT(u.Id, jwtConfig)
 		if err != nil {
+			w.WriteHeader(500)
 			println("Token error", err.Error())
-			fmt.Printf("%+v\n", jwtConfig)
 			OnDbError(w)
 			return
 		}
 
+		w.WriteHeader(200)
 		json.NewEncoder(w).Encode(NewSuccessMessage(
-			tokenString,
+			token,
 			200,
 			u,
 		))
