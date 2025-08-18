@@ -16,7 +16,7 @@ var (
 
 func (ur *UserRepository) Create(u *model.User) (*model.User, error) {
 	query := fmt.Sprintf("INSERT INTO %s (email, name, password) VALUES ($1, $2, $3) RETURNING id", table)
-	err := ur.store.db.QueryRow(context.Background(), query, u.Email, u.Name, u.Password).Scan(&u.Id)
+	err := ur.store.db.QueryRow(context.Background(), query, u.Email, u.Username, u.Password).Scan(&u.Id)
 
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func (ur *UserRepository) FindByEmail(email string) (*model.User, bool, error) {
 
 	user := model.User{}
 
-	err := ur.store.db.QueryRow(context.Background(), query, email).Scan(&user.Id, &user.Name, &user.Password, &user.Email)
+	err := ur.store.db.QueryRow(context.Background(), query, email).Scan(&user.Id, &user.Username, &user.Password, &user.Email)
 
 	if err != nil {
 		return nil, false, err
