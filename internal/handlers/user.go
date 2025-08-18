@@ -20,6 +20,16 @@ func CreateUser(repo *store.UserRepository) http.HandlerFunc {
 			// TODO LOGGER
 		}
 
+		hasErr, errors := UserValidator(user)
+		if hasErr {
+			w.WriteHeader(400)
+			json.NewEncoder(w).Encode(NewErrorMessage(
+				errors,
+				400,
+			))
+			return
+		}
+
 		user, err := repo.Create(user)
 
 		if err != nil {
@@ -29,7 +39,7 @@ func CreateUser(repo *store.UserRepository) http.HandlerFunc {
 
 		w.WriteHeader(200)
 		json.NewEncoder(w).Encode(NewSuccessMessage(
-			"User created succesfully",
+			"User created successfully",
 			200,
 			user.Id,
 		))

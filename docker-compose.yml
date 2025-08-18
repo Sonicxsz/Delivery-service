@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  postgres:
+    restart: always
+    image: postgres:15.2-alpine3.17
+    ports:
+      - '5432:5432'
+    container_name: arabic-app-db
+    environment:
+      - 'POSTGRES_USER=user'
+      - 'POSTGRES_PASSWORD=user'
+      - 'POSTGRES_DB=arabic-app-local'
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./local-db/db_script.sql:/docker-entrypoint-initdb.d/001.sql
