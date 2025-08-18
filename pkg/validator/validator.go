@@ -22,24 +22,20 @@ func New() *Validator {
 
 func (v *Validator) CheckEmail(email string) {
 	if !emailRegex.MatchString(email) {
-		v.errors = append(v.errors, "Incorrect email address")
+		v.errors = append(v.errors, "Invalid email. Must contain: letters (a-z, A-Z), digits (0-9), or symbols ._%+- before @, followed by a valid domain with a TLD (e.g., .com, .org).")
 	}
 }
 
 func (v *Validator) CheckPassword(password string) {
-
-	for _, re := range []*regexp.Regexp{passwordRegex} {
-		if !re.MatchString(password) {
-			v.errors = append(v.errors, "Incorrect password")
-			return
-		}
+	if !passwordRegex.MatchString(password) {
+		v.errors = append(v.errors, "Invalid password. Must be at least 8 characters long and can include letters, digits, and symbols .!_@#$%^&*.")
+		return
 	}
 }
 
 func (v *Validator) CheckUsername(username string) {
-
 	if !usernameRegex.MatchString(username) {
-		v.errors = append(v.errors, "Incorrect username")
+		v.errors = append(v.errors, "Invalid username. Must be 3–16 characters long and contain only letters, digits, hyphens (-), or underscores (_).")
 		return
 	}
 }
