@@ -3,3 +3,6 @@ server.toml
 app.exe
 app
 .idea
+
+.idea
+postgres-data
