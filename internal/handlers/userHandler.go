@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"arabic/internal/handlers/dto"
 	"arabic/internal/model"
 	security "arabic/internal/security/auth"
 	"arabic/store"
@@ -30,10 +31,10 @@ func CreateUser(repo *store.UserRepository) http.HandlerFunc {
 			return
 		}
 
-		user, err := repo.Create(user)
+		userId, err := repo.Create(user)
 
 		if err != nil {
-			OnDbError(w)
+			handleDatabaseError(w, err)
 			return
 		}
 
@@ -41,51 +42,26 @@ func CreateUser(repo *store.UserRepository) http.HandlerFunc {
 		json.NewEncoder(w).Encode(NewSuccessMessage(
 			"User created successfully",
 			200,
-			user.Id,
+			userId,
 		))
 	}
 }
 
 func Login(repo *store.UserRepository, jwtConfig *security.JWTConfig) http.HandlerFunc {
-	type Request struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
-		var data Request
+		var data dto.UserRequest
 
 		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 			OnJsonDataParseError(w)
 			return
 		}
-
-		u, ok, err := repo.FindByEmail(data.Email)
-
-		if err != nil {
-			OnDbError(w)
-			return
-		}
-
-		if !ok || data.Password != u.Password {
-			w.WriteHeader(400)
-			json.NewEncoder(w).Encode(NewErrorMessage(
-				"Please check provided login and password",
-				400,
-			))
-			return
-		}
-
-		token, err := security.GenerateJWT(u.Id, jwtConfig)
-		if err != nil {
-			w.WriteHeader(500)
-			println("Token error", err.Error())
-			OnDbError(w)
-			return
-		}
+		u := verifyCredentials(w, repo, &data)
+		generateToken(u.Id, jwtConfig, w)
 
 		w.WriteHeader(200)
 		json.NewEncoder(w).Encode(NewSuccessMessage(
-			token,
+			"Your advertisement could be here.",
 			200,
 			u,
 		))

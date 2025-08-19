@@ -21,7 +21,7 @@ func BuildProtectedRoutes(r *mux.Router, store *store.Store, jwtConfig *security
 	protected.Use(JWTMiddleware.CheckJWT)
 
 	protected.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hgee"))
+		w.Write([]byte("Token is valid"))
 	}).Methods("POST")
 	// Будут защищенные api роуты
 }
