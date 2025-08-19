@@ -2,3 +2,6 @@ configs/server.toml
 server.toml
 app.exe
 app
+
+.idea
+postgres-data
