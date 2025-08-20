@@ -3,6 +3,7 @@ package builders
 import (
 	"arabic/internal/handlers"
 	security "arabic/internal/security/auth"
+	"arabic/internal/service"
 	"arabic/store"
 	"net/http"
 
@@ -10,8 +11,11 @@ import (
 )
 
 func BuildRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfig) {
-	r.HandleFunc("/register", handlers.CreateUser(store.User())).Methods("POST")
-	r.HandleFunc("/login", handlers.Login(store.User(), jwtConfig)).Methods("POST")
+	authService := service.NewAuthService(store.UserRepo(), jwtConfig)
+	authHandler := handlers.NewAuthHandler(authService)
+
+	r.HandleFunc("/register", authHandler.CreateUser()).Methods("POST")
+	r.HandleFunc("/login", authHandler.Login()).Methods("POST")
 }
 
 func BuildProtectedRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfig) {

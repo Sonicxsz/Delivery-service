@@ -3,9 +3,6 @@ package store
 import (
 	"arabic/internal/model"
 	"context"
-	"fmt"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository struct {
@@ -17,27 +14,18 @@ var (
 	searchUserByEmail = "SELECT id, username, password, email FROM test.users WHERE email = $1"
 )
 
-func (ur *UserRepository) Create(u *model.User) (string, error) {
-	hashedPassword, err2 := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.MinCost)
-	if err2 != nil {
-		return "", fmt.Errorf("failed to hash password: %w", err2)
-	}
-
-	err := ur.store.db.
-		QueryRow(context.Background(), insertUser, u.Email, u.Username, string(hashedPassword)).
-		Scan(&u.Id)
-
+func (ur *UserRepository) Create(cxt context.Context, u *model.User) (*model.User, error) {
+	err := ur.store.db.QueryRow(cxt, insertUser, u.Email, u.Username, u.Password).Scan(&u.Id)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return u.Id, nil
+	return u, nil
 }
 
-func (ur *UserRepository) FindByEmail(email string) (*model.User, bool, error) {
-
+func (ur *UserRepository) FindByEmail(cxt context.Context, email string) (*model.User, bool, error) {
 	user := model.User{}
-	err := ur.store.db.QueryRow(context.Background(), searchUserByEmail, email).Scan(&user.Id, &user.Username, &user.Password, &user.Email)
+	err := ur.store.db.QueryRow(cxt, searchUserByEmail, email).Scan(&user.Id, &user.Username, &user.Password, &user.Email)
 
 	if err != nil {
 		return nil, false, err
