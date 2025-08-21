@@ -5,25 +5,21 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 )
 
 type Api struct {
 	config *Config
 	router *mux.Router
 	store  *store.Store
-	Logger *logrus.Logger
 }
 
 func New(config *Config) *Api {
 	return &Api{
 		config: config,
-		Logger: logrus.New(),
 	}
 }
 
 func (api *Api) Start() error {
-
 	if err := api.configureLogger(); err != nil {
 		return err
 	}

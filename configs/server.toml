@@ -1,5 +1,6 @@
 bind_add="8080"
-log_level="info"
+log_level="warn"
+log_dir="./logs/"
 
 [storage]
 db_conn_string="postgres://user:user@localhost:5432/postgres?sslmode=disable"
