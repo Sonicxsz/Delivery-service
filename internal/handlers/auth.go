@@ -6,9 +6,11 @@ import (
 	"arabic/internal/service"
 	"encoding/json"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
-func CreateUser(authService service.AuthService) http.HandlerFunc {
+func CreateUser(authService service.AuthService, logger *logrus.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		user := &model.User{}
@@ -33,7 +35,7 @@ func CreateUser(authService service.AuthService) http.HandlerFunc {
 	}
 }
 
-func Login(authService service.AuthService) http.HandlerFunc {
+func Login(authService service.AuthService, logger *logrus.Logger) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req dto.UserLoginRequest

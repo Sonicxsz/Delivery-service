@@ -25,16 +25,11 @@ func NewRouteBuilder(store *store.Store, jwtConfig *security.JWTConfig, logger *
 	}
 }
 
-func BuildRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfig) {
-	authService := service.NewAuthService(store.UserRepo(), jwtConfig)
-
-	r.HandleFunc("/register", handlers.CreateUser(authService)).Methods("POST")
-	r.HandleFunc("/login", handlers.Login(authService)).Methods("POST")
-}
-
 func (b *RouteBuilder) BuildRoutes(r *mux.Router) {
-	r.HandleFunc("/register", handlers.CreateUser(b.store.User(), b.logger)).Methods("POST")
-	r.HandleFunc("/login", handlers.Login(b.store.User(), b.jwtConfig, b.logger)).Methods("POST")
+	authService := service.NewAuthService(b.store.UserRepo(), b.jwtConfig)
+
+	r.HandleFunc("/register", handlers.CreateUser(authService, b.logger)).Methods("POST")
+	r.HandleFunc("/login", handlers.Login(authService, b.logger)).Methods("POST")
 }
 
 func (b *RouteBuilder) BuildProtectedRoutes(r *mux.Router) {
