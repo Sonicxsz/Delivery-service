@@ -3,12 +3,12 @@ package handlers
 import (
 	"arabic/internal/dto"
 	"arabic/internal/model"
-	. "arabic/internal/service"
+	"arabic/internal/service"
 	"encoding/json"
 	"net/http"
 )
 
-func CreateUser(authService AuthService) http.HandlerFunc {
+func CreateUser(authService service.AuthService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		user := &model.User{}
@@ -33,7 +33,7 @@ func CreateUser(authService AuthService) http.HandlerFunc {
 	}
 }
 
-func Login(authService AuthService) http.HandlerFunc {
+func Login(authService service.AuthService) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req dto.UserLoginRequest

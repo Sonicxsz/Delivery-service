@@ -1,0 +1,12 @@
+bind_add="8080"
+log_level="info"
+
+[storage]
+db_conn_string="postgres://user:user@localhost:5432/postgres?sslmode=disable"
+db_migrations_url="postgres://user:user@localhost:5432/postgres?sslmode=disable"
+db_migrations_path="file://./migrations"
+
+[jwt]
+jwt_secret_key="SOME_SECRET_KEY_ARABIC"
+jwt_audience="USER"
+jwt_issuer="http://Arabic.com"
