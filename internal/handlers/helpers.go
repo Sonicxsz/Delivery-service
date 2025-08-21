@@ -2,63 +2,55 @@ package handlers
 
 import (
 	"arabic/internal/model"
+	"arabic/pkg/errors"
 	"arabic/pkg/validator"
 	"encoding/json"
-	"github.com/google/uuid"
+	"fmt"
+	"log"
 	"net/http"
+	"runtime"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	errors2 "github.com/pkg/errors"
 )
 
-type Message[T any] struct {
-	Message string    `json:"message"`
-	Error   bool      `json:"error"`
-	Code    int       `json:"code"`
-	Data    T         `json:"data,omitempty"`
+type SuccessMessage[T any] struct {
+	Status  int  `json:"status"`
+	Data    T    `json:"data,omitempty"`
+	Success bool `json:"success"`
+}
+
+type ErrorMessage[T any] struct {
+	Status  int       `json:"status"`
+	Error   string    `json:"error"`
+	Success bool      `json:"success"`
 	Id      uuid.UUID `json:"id"`
 	Time    time.Time `json:"time"`
+	Path    string    `json:"path"`
 }
 
-func NewSuccessMessage[T any](msg string, code int, data T) *Message[T] {
-	return &Message[T]{
-		Message: msg,
-		Code:    code,
+func NewSuccessMessage[T any](status int, data T) *SuccessMessage[T] {
+	return &SuccessMessage[T]{
+		Status:  status,
 		Data:    data,
-		Error:   false,
+		Success: true,
 	}
 }
 
-func NewErrorMessage(msg string, code int) *Message[interface{}] {
-	return &Message[interface{}]{
-		Message: msg,
-		Code:    code,
-		Error:   true,
+func NewErrorMessage(path, error string, status int) *ErrorMessage[interface{}] {
+	return &ErrorMessage[interface{}]{
+		Status:  status,
+		Error:   error,
+		Success: false,
 		Id:      uuid.New(),
 		Time:    time.Now(),
+		Path:    path,
 	}
 }
 
-func initHeaders(w http.ResponseWriter) {
-	w.Header().Set("Content-type", "application/json")
-}
-
-func OnJsonDataParseError(w http.ResponseWriter) {
-	w.WriteHeader(400)
-	json.NewEncoder(w).Encode(NewErrorMessage(
-		"Cannot parse data, please check provided user data",
-		400,
-	))
-}
-
-func OnDbError(w http.ResponseWriter) {
-	w.WriteHeader(500)
-	json.NewEncoder(w).Encode(NewErrorMessage(
-		"Something went wrong, please try later...",
-		500,
-	))
-}
-
-func UserValidator(user *model.User) (bool, string) {
+func UserValidator(user *model.User) (bool, error) {
 	v := validator.New()
 	v.CheckEmail(user.Email)
 	v.CheckUsername(user.Username)
@@ -67,8 +59,48 @@ func UserValidator(user *model.User) (bool, string) {
 	hasErrors, err := v.HasErrors()
 
 	if hasErrors {
-		return hasErrors, strings.Join(err, ", ")
+		return hasErrors, errors.NewServiceError(http.StatusBadRequest, strings.Join(err, ", "), nil)
 	}
 
-	return hasErrors, ""
+	return hasErrors, nil
+}
+
+func handleServiceError(w http.ResponseWriter, err error, operation string) {
+	var serviceErr *errors.ServiceError
+	if errors2.As(err, &serviceErr) {
+		respondError(w, serviceErr.Code, serviceErr.Message)
+	} else {
+		log.Printf("Unexpected error type in %s: %v", operation, err)
+		respondError(w, http.StatusInternalServerError, "Internal server error")
+	}
+}
+
+func setAuthCookie(w http.ResponseWriter, token string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    token,
+		HttpOnly: true,
+		// нужно изучить другие параметры
+	})
+}
+
+func respondSuccess(w http.ResponseWriter, status int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(NewSuccessMessage(status, data))
+}
+
+func respondError(w http.ResponseWriter, status int, error string) {
+	pc, file, line, ok := runtime.Caller(1)
+	var pathInfo string
+	if ok {
+		funcName := runtime.FuncForPC(pc).Name()
+		pathInfo = fmt.Sprintf("%s:%d (%s)", file, line, funcName)
+	} else {
+		pathInfo = "unknown"
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(NewErrorMessage(pathInfo, error, status))
 }

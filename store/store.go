@@ -39,7 +39,7 @@ func (s *Store) Stop() {
 	s.db.Close()
 }
 
-func (s *Store) User() *UserRepository {
+func (s *Store) UserRepo() *UserRepository {
 	if s.UserRepository == nil {
 		s.UserRepository = &UserRepository{
 			store: s,
