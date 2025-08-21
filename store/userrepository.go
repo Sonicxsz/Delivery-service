@@ -23,13 +23,13 @@ func (ur *UserRepository) Create(cxt context.Context, u *model.User) (*model.Use
 	return u, nil
 }
 
-func (ur *UserRepository) FindByEmail(cxt context.Context, email string) (*model.User, bool, error) {
+func (ur *UserRepository) FindByEmail(cxt context.Context, email string) (*model.User, error) {
 	user := model.User{}
 	err := ur.store.db.QueryRow(cxt, searchUserByEmail, email).Scan(&user.Id, &user.Username, &user.Password, &user.Email)
 
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
-	return &user, true, nil
+	return &user, nil
 }

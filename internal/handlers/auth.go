@@ -3,20 +3,12 @@ package handlers
 import (
 	"arabic/internal/dto"
 	"arabic/internal/model"
-	"arabic/internal/service"
+	. "arabic/internal/service"
 	"encoding/json"
 	"net/http"
 )
 
-type AuthHandler struct {
-	authService *service.AuthService
-}
-
-func NewAuthHandler(authService *service.AuthService) *AuthHandler {
-	return &AuthHandler{authService: authService}
-}
-
-func (h *AuthHandler) CreateUser() http.HandlerFunc {
+func CreateUser(authService AuthService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		user := &model.User{}
@@ -32,7 +24,7 @@ func (h *AuthHandler) CreateUser() http.HandlerFunc {
 			return
 		}
 
-		user, err = h.authService.CreateUser(r.Context(), user)
+		user, err = authService.CreateUser(r.Context(), user)
 		if err != nil {
 			handleServiceError(w, err, "CreateUser")
 			return
@@ -41,7 +33,7 @@ func (h *AuthHandler) CreateUser() http.HandlerFunc {
 	}
 }
 
-func (h *AuthHandler) Login() http.HandlerFunc {
+func Login(authService AuthService) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req dto.UserLoginRequest
@@ -50,7 +42,7 @@ func (h *AuthHandler) Login() http.HandlerFunc {
 			return
 		}
 
-		user, token, err := h.authService.Login(r.Context(), req.Email, req.Password)
+		user, token, err := authService.Login(r.Context(), req.Email, req.Password)
 		if err != nil {
 			handleServiceError(w, err, "Login")
 			return

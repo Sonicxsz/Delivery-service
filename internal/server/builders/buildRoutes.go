@@ -12,10 +12,9 @@ import (
 
 func BuildRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfig) {
 	authService := service.NewAuthService(store.UserRepo(), jwtConfig)
-	authHandler := handlers.NewAuthHandler(authService)
 
-	r.HandleFunc("/register", authHandler.CreateUser()).Methods("POST")
-	r.HandleFunc("/login", authHandler.Login()).Methods("POST")
+	r.HandleFunc("/register", handlers.CreateUser(authService)).Methods("POST")
+	r.HandleFunc("/login", handlers.Login(authService)).Methods("POST")
 }
 
 func BuildProtectedRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfig) {
