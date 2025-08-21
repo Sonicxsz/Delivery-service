@@ -11,8 +11,9 @@ import (
 func (a *Api) configureRouter() {
 	router := mux.NewRouter()
 
-	builders.BuildRoutes(router, a.store, a.config.JWT)
-	builders.BuildProtectedRoutes(router, a.store, a.config.JWT)
+	builder := builders.NewRouteBuilder(a.store, a.config.JWT, a.Logger)
+	builder.BuildRoutes(router)
+	builder.BuildProtectedRoutes(router)
 
 	a.router = router
 }
