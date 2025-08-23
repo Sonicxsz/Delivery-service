@@ -8,6 +8,7 @@ import (
 type Config struct {
 	BindAddr string `toml:"bind_addr"`
 	LogLevel string `toml:"log_level"`
+	LogDir   string `toml:"log_dir"`
 	Storage  *store.Config
 	JWT      *security.JWTConfig
 }

@@ -2,10 +2,10 @@ package server
 
 import (
 	"arabic/internal/server/builders"
+	"arabic/pkg/logger"
 	"arabic/store"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 )
 
 func (a *Api) configureRouter() {
@@ -18,15 +18,7 @@ func (a *Api) configureRouter() {
 }
 
 func (a *Api) configureLogger() error {
-	level, err := logrus.ParseLevel(a.config.LogLevel)
-
-	if err != nil {
-		return err
-	}
-
-	a.Logger.SetLevel(level)
-
-	return nil
+	return logger.Init(a.config.LogLevel, a.config.LogDir)
 }
 
 func (a *Api) configureStore() error {
