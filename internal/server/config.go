@@ -2,7 +2,7 @@ package server
 
 import (
 	security "arabic/internal/security/auth"
-	"arabic/store"
+	"arabic/internal/store"
 )
 
 type Config struct {

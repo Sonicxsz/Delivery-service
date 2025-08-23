@@ -4,17 +4,20 @@ import (
 	"arabic/internal/handlers"
 	security "arabic/internal/security/auth"
 	"arabic/internal/service"
-	"arabic/store"
+	"arabic/internal/store"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
 func BuildRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfig) {
-	authService := service.NewAuthService(store.UserRepo(), jwtConfig)
+	authService := service.NewAuthService(store.UserRepository(), jwtConfig)
+	tagService := service.NewTagService(store.TagRepository())
 
 	r.HandleFunc("/register", handlers.CreateUser(authService)).Methods("POST")
 	r.HandleFunc("/login", handlers.Login(authService)).Methods("POST")
+	r.HandleFunc("/tag", handlers.CreateTag(tagService)).Methods("POST")
+	r.HandleFunc("/all-tags", handlers.FindAllTags(tagService)).Methods("GET")
 }
 
 func BuildProtectedRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfig) {

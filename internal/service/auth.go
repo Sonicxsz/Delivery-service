@@ -3,8 +3,8 @@ package service
 import (
 	"arabic/internal/model"
 	security "arabic/internal/security/auth"
+	"arabic/internal/store"
 	"arabic/pkg/errors"
-	"arabic/store"
 	"context"
 	"fmt"
 	"net/http"
@@ -54,7 +54,7 @@ func (s *UserService) Login(ctx context.Context, email, password string) (*model
 		return nil, "", err
 	}
 
-	token, err := security.GenerateJWT(user.Id, s.jwtConfig)
+	token, err := security.GenerateJWT(string(user.Id), s.jwtConfig)
 	if err != nil {
 		return nil, "", errors.NewServiceError(http.StatusInternalServerError, "Something went wrong. pls try later", err)
 	}

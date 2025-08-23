@@ -1,7 +1,7 @@
 package server
 
 import (
-	"arabic/store"
+	"arabic/internal/store"
 	"net/http"
 
 	"github.com/gorilla/mux"

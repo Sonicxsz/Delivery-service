@@ -9,7 +9,8 @@ import (
 type Store struct {
 	config         *Config
 	db             *pgxpool.Pool
-	UserRepository *UserRepository
+	userRepository *UserRepository
+	tagRepository  *TagRepository
 }
 
 func New(config *Config) *Store {
@@ -39,12 +40,22 @@ func (s *Store) Stop() {
 	s.db.Close()
 }
 
-func (s *Store) UserRepo() *UserRepository {
-	if s.UserRepository == nil {
-		s.UserRepository = &UserRepository{
+func (s *Store) UserRepository() *UserRepository {
+	if s.userRepository == nil {
+		s.userRepository = &UserRepository{
 			store: s,
 		}
 	}
 
-	return s.UserRepository
+	return s.userRepository
+}
+
+func (s *Store) TagRepository() *TagRepository {
+	if s.tagRepository == nil {
+		s.tagRepository = &TagRepository{
+			store: s,
+		}
+	}
+
+	return s.tagRepository
 }
