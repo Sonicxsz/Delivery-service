@@ -8,7 +8,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"log"
 	"os"
-	"strconv"
+	"runtime"
 	"strings"
 	"sync"
 )
@@ -51,69 +51,75 @@ func (i *ImageParser) runBrowser() func() {
 		println("Browser closed")
 	}
 }
+
 func (i *ImageParser) Parse(queries []string) {
 
 	cleanUp := i.runBrowser()
 	defer cleanUp()
 
 	wg := sync.WaitGroup{}
-	ch := make(chan error, len(queries))
+	errorsChan := make(chan error, len(queries))
+	queriesChan := make(chan string, len(queries))
 
-	sem := make(chan struct{}, 10)
-	for idx, query := range queries {
+	for idx := 0; idx < runtime.NumCPU(); idx++ {
 		wg.Add(1)
-		sem <- struct{}{}
-		go func(q string, id int) {
+		go func() {
 			defer wg.Done()
-			defer func() { <-sem }()
-
-			err := i.parse(q, id)
-			if err != nil {
-				ch <- err
-			}
-		}(query, idx)
+			i.parse(queriesChan, errorsChan)
+		}()
 	}
 
-	wg.Wait()
-	close(ch)
+	for _, query := range queries {
+		queriesChan <- query
+	}
+	close(queriesChan)
 
-	for err := range ch {
+	wg.Wait()
+	close(errorsChan)
+
+	for err := range errorsChan {
 		if err != nil {
 			log.Println("Error:", err)
 		}
 	}
 }
 
-func (i *ImageParser) parse(query string, id int) error {
+func (i *ImageParser) parse(queryChan <-chan string, errChan chan<- error) {
 	ctx, cancel := chromedp.NewContext(i.browserCtx)
 	defer cancel()
 
 	var html string
 
-	fmt.Println("🔍 Картинки по запросу:", query)
-	err := chromedp.Run(ctx,
-		chromedp.Navigate("https://www.google.com/search?tbm=isch&q="+query),
-		chromedp.OuterHTML("html", &html))
+	for query := range queryChan {
 
-	if err != nil {
-		return err
+		fmt.Println("🔍 Картинки по запросу:", query)
+		err := chromedp.Run(ctx,
+			chromedp.Navigate("https://www.google.com/search?tbm=isch&q="+query),
+			chromedp.OuterHTML("html", &html))
+
+		if err != nil {
+			errChan <- err
+			return
+		}
+
+		images, err := i.findImagesInHtml(html)
+
+		if err != nil {
+			errChan <- err
+			return
+		}
+		image, err := i.findOptimalImage(images)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		err = i.saveImage(image, query)
+		if err != nil {
+			errChan <- err
+			return
+		}
 	}
 
-	images, err := i.findImagesInHtml(html)
-
-	if err != nil {
-		return err
-	}
-	image, err := i.findOptimalImage(images)
-	if err != nil {
-		return err
-	}
-	imageName := query + strconv.Itoa(id)
-	err = i.saveImage(image, imageName)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (i *ImageParser) findImagesInHtml(html string) ([]string, error) {
