@@ -20,7 +20,7 @@ type ImageParser struct {
 	browserCtx        context.Context
 }
 
-func New(path string, selectionCount, maxImageBytesSize int) *ImageParser {
+func (i *ImageParser) New(path string, selectionCount, maxImageBytesSize int) *ImageParser {
 	if selectionCount == 0 {
 		selectionCount = 10
 	}
