@@ -20,7 +20,6 @@ func init() {
 
 func main() {
 	flag.Parse()
-
 	config := server.NewConfig()
 
 	if _, err := toml.DecodeFile(configPath, &config); err != nil {
@@ -34,5 +33,6 @@ func main() {
 	server := server.New(config)
 
 	println("Server starting")
+
 	log.Fatal(server.Start())
 }
