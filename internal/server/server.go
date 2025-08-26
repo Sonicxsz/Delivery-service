@@ -1,6 +1,7 @@
 package server
 
 import (
+	"arabic/pkg/logger"
 	"arabic/store"
 	"net/http"
 
@@ -23,11 +24,13 @@ func (api *Api) Start() error {
 	if err := api.configureLogger(); err != nil {
 		return err
 	}
+	defer logger.Log.Close()
 
 	if err := api.configureStore(); err != nil {
 		return err
 	}
 
 	api.configureRouter()
+
 	return http.ListenAndServe(api.config.BindAddr, api.router)
 }
