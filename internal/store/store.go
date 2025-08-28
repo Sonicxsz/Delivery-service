@@ -7,10 +7,11 @@ import (
 )
 
 type Store struct {
-	config         *Config
-	db             *pgxpool.Pool
-	userRepository *UserRepository
-	tagRepository  *TagRepository
+	config             *Config
+	db                 *pgxpool.Pool
+	userRepository     *UserRepository
+	tagRepository      *TagRepository
+	categoryRepository *CategoryRepository
 }
 
 func New(config *Config) *Store {
@@ -58,4 +59,14 @@ func (s *Store) TagRepository() *TagRepository {
 	}
 
 	return s.tagRepository
+}
+
+func (s *Store) CategoryRepository() *CategoryRepository {
+	if s.categoryRepository == nil {
+		s.categoryRepository = &CategoryRepository{
+			store: s,
+		}
+	}
+
+	return s.categoryRepository
 }

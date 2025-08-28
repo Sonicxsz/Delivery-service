@@ -10,15 +10,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type TagHandler struct {
-	service service.ITagService
+type CategoryHandler struct {
+	service service.ICategoryService
 }
 
-func NewTagHandler(service service.ITagService) *TagHandler {
-	return &TagHandler{service: service}
+func NewCategoryHandler(service service.ICategoryService) *CategoryHandler {
+	return &CategoryHandler{service: service}
 }
 
-func (t *TagHandler) FindAll() http.HandlerFunc {
+func (t *CategoryHandler) FindAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		all, err := t.service.FindAll(r.Context())
 		if err != nil {
@@ -29,33 +29,33 @@ func (t *TagHandler) FindAll() http.HandlerFunc {
 	}
 }
 
-func (t *TagHandler) Create() http.HandlerFunc {
+func (t *CategoryHandler) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req dto.TagRequest
+		var req dto.CategoryRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			respondError(w, http.StatusBadRequest, "Invalid request payload")
 			return
 		}
 
-		tag, err := t.service.Create(r.Context(), &req)
+		category, err := t.service.Create(r.Context(), &req)
 		if err != nil {
 			respondError(w, http.StatusInternalServerError, "Something went wrong. pls try later")
 			return
 		}
-		respondSuccess(w, http.StatusOK, tag)
+		respondSuccess(w, http.StatusOK, category)
 	}
 }
 
-func (t *TagHandler) Delete() http.HandlerFunc {
+func (t *CategoryHandler) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		tagId, err := strconv.ParseInt(vars["id"], 10, 64)
+		categoryId, err := strconv.ParseInt(vars["id"], 10, 64)
 		if err != nil {
-			respondError(w, http.StatusBadRequest, "Invalid tag ID")
+			respondError(w, http.StatusBadRequest, "Invalid category ID")
 			return
 		}
 
-		err = t.service.Delete(r.Context(), tagId)
+		err = t.service.Delete(r.Context(), categoryId)
 		if err != nil {
 			handleServiceError(w, err, "Delete")
 			return

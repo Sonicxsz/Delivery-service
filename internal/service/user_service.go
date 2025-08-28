@@ -11,17 +11,17 @@ import (
 	"strings"
 )
 
+type IUserService interface {
+	CreateUser(ctx context.Context, user *model.User) (*model.User, error)
+	Login(ctx context.Context, email, password string) (*model.User, string, error)
+}
+
 type UserService struct {
 	userRepository *store.UserRepository
 	jwtConfig      *security.JWTConfig
 }
 
-type AuthService interface {
-	CreateUser(ctx context.Context, user *model.User) (*model.User, error)
-	Login(ctx context.Context, email, password string) (*model.User, string, error)
-}
-
-func NewAuthService(userRepo *store.UserRepository, jwtConfig *security.JWTConfig) *UserService {
+func NewUserService(userRepo *store.UserRepository, jwtConfig *security.JWTConfig) *UserService {
 	return &UserService{
 		userRepository: userRepo,
 		jwtConfig:      jwtConfig,
