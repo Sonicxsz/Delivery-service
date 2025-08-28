@@ -2,6 +2,7 @@ package logger
 
 import (
 	"github.com/sirupsen/logrus"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -26,11 +27,11 @@ func (l *Logger) Error(args ...interface{}) {
 	l.logger.Errorln(args)
 }
 
-func (l *Logger) Close() error {
+func (l *Logger) Close() {
 	if l.file != nil {
-		return l.file.Close()
+		err := l.file.Close()
+		log.Fatal(err)
 	}
-	return nil
 }
 
 func newLogger() *Logger {
