@@ -8,7 +8,15 @@ import (
 	"net/http"
 )
 
-func CreateUser(authService service.AuthService) http.HandlerFunc {
+type UserHandler struct {
+	service service.IUserService
+}
+
+func NewUserHandler(service service.IUserService) *UserHandler {
+	return &UserHandler{service: service}
+}
+
+func (u *UserHandler) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		user := &model.User{}
@@ -24,7 +32,7 @@ func CreateUser(authService service.AuthService) http.HandlerFunc {
 			return
 		}
 
-		user, err = authService.CreateUser(r.Context(), user)
+		user, err = u.service.CreateUser(r.Context(), user)
 		if err != nil {
 			handleServiceError(w, err, "CreateUser")
 			return
@@ -33,7 +41,7 @@ func CreateUser(authService service.AuthService) http.HandlerFunc {
 	}
 }
 
-func Login(authService service.AuthService) http.HandlerFunc {
+func (u *UserHandler) Login() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req dto.UserLoginRequest
@@ -42,7 +50,7 @@ func Login(authService service.AuthService) http.HandlerFunc {
 			return
 		}
 
-		user, token, err := authService.Login(r.Context(), req.Email, req.Password)
+		user, token, err := u.service.Login(r.Context(), req.Email, req.Password)
 		if err != nil {
 			handleServiceError(w, err, "Login")
 			return

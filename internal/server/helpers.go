@@ -2,8 +2,8 @@ package server
 
 import (
 	"arabic/internal/server/builders"
+	"arabic/internal/store"
 	"arabic/pkg/logger"
-	"arabic/store"
 
 	"github.com/gorilla/mux"
 )

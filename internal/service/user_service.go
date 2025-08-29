@@ -3,25 +3,25 @@ package service
 import (
 	"arabic/internal/model"
 	security "arabic/internal/security/auth"
+	"arabic/internal/store"
 	"arabic/pkg/errors"
-	"arabic/store"
 	"context"
 	"fmt"
 	"net/http"
 	"strings"
 )
 
+type IUserService interface {
+	CreateUser(ctx context.Context, user *model.User) (*model.User, error)
+	Login(ctx context.Context, email, password string) (*model.User, string, error)
+}
+
 type UserService struct {
 	userRepository *store.UserRepository
 	jwtConfig      *security.JWTConfig
 }
 
-type AuthService interface {
-	CreateUser(ctx context.Context, user *model.User) (*model.User, error)
-	Login(ctx context.Context, email, password string) (*model.User, string, error)
-}
-
-func NewAuthService(userRepo *store.UserRepository, jwtConfig *security.JWTConfig) *UserService {
+func NewUserService(userRepo *store.UserRepository, jwtConfig *security.JWTConfig) *UserService {
 	return &UserService{
 		userRepository: userRepo,
 		jwtConfig:      jwtConfig,
@@ -54,7 +54,7 @@ func (s *UserService) Login(ctx context.Context, email, password string) (*model
 		return nil, "", err
 	}
 
-	token, err := security.GenerateJWT(user.Id, s.jwtConfig)
+	token, err := security.GenerateJWT(string(user.Id), s.jwtConfig)
 	if err != nil {
 		return nil, "", errors.NewServiceError(http.StatusInternalServerError, "Something went wrong. pls try later", err)
 	}

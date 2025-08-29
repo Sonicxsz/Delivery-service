@@ -71,7 +71,7 @@ func handleServiceError(w http.ResponseWriter, err error, operation string) {
 		respondError(w, serviceErr.Code, serviceErr.Message)
 	} else {
 		log.Printf("Unexpected error type in %s: %v", operation, err)
-		respondError(w, http.StatusInternalServerError, "Internal server error")
+		respondError(w, http.StatusInternalServerError, "Something went wrong. pls try later")
 	}
 }
 

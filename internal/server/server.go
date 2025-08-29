@@ -2,7 +2,7 @@ package server
 
 import (
 	"arabic/pkg/logger"
-	"arabic/store"
+	"arabic/internal/store"
 	"net/http"
 
 	"github.com/gorilla/mux"
