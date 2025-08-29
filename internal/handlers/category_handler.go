@@ -18,11 +18,11 @@ func NewCategoryHandler(service service.ICategoryService) *CategoryHandler {
 	return &CategoryHandler{service: service}
 }
 
-func (t *CategoryHandler) FindAll() http.HandlerFunc {
+func (t *CategoryHandler) GetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		all, err := t.service.FindAll(r.Context())
+		all, err := t.service.GetAll(r.Context())
 		if err != nil {
-			handleServiceError(w, err, "FindAll")
+			handleServiceError(w, err, "CategoryHandle GetAll")
 			return
 		}
 		respondSuccess(w, http.StatusOK, all)
@@ -57,7 +57,7 @@ func (t *CategoryHandler) Delete() http.HandlerFunc {
 
 		err = t.service.Delete(r.Context(), categoryId)
 		if err != nil {
-			handleServiceError(w, err, "Delete")
+			handleServiceError(w, err, "CategoryHandle Delete")
 			return
 		}
 

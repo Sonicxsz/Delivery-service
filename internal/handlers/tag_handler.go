@@ -18,11 +18,11 @@ func NewTagHandler(service service.ITagService) *TagHandler {
 	return &TagHandler{service: service}
 }
 
-func (t *TagHandler) FindAll() http.HandlerFunc {
+func (t *TagHandler) GetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		all, err := t.service.FindAll(r.Context())
+		all, err := t.service.GetAll(r.Context())
 		if err != nil {
-			handleServiceError(w, err, "FindAll")
+			handleServiceError(w, err, "TagHandle GetAll")
 			return
 		}
 		respondSuccess(w, http.StatusOK, all)
@@ -57,7 +57,7 @@ func (t *TagHandler) Delete() http.HandlerFunc {
 
 		err = t.service.Delete(r.Context(), tagId)
 		if err != nil {
-			handleServiceError(w, err, "Delete")
+			handleServiceError(w, err, "TagHandle Delete")
 			return
 		}
 

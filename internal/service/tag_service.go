@@ -15,7 +15,7 @@ type TagService struct {
 }
 
 type ITagService interface {
-	FindAll(cxt context.Context) ([]*dto.TagResponse, error)
+	GetAll(cxt context.Context) ([]*dto.TagResponse, error)
 	Create(cxt context.Context, req *dto.TagRequest) (*dto.TagResponse, error)
 	Delete(cxt context.Context, id int64) error
 }
@@ -26,7 +26,7 @@ func NewTagService(tagRepository *store.TagRepository) *TagService {
 	}
 }
 
-func (s *TagService) FindAll(cxt context.Context) ([]*dto.TagResponse, error) {
+func (s *TagService) GetAll(cxt context.Context) ([]*dto.TagResponse, error) {
 	all, err := s.tagRepository.FindAll(cxt)
 	if err != nil {
 		return nil, err

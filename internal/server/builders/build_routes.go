@@ -25,14 +25,14 @@ func BuildRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfi
 	tagService := service.NewTagService(store.TagRepository())
 	tagHandler := handlers.NewTagHandler(tagService)
 	r.HandleFunc(url+"/tag", tagHandler.Create()).Methods("POST")
-	r.HandleFunc(url+"/tag/all", tagHandler.FindAll()).Methods("GET")
+	r.HandleFunc(url+"/tag/all", tagHandler.GetAll()).Methods("GET")
 	r.HandleFunc(url+"/tag/{id}", tagHandler.Delete()).Methods("DELETE")
 
 	//Category
 	categoryService := service.NewCategoryService(store.CategoryRepository())
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 	r.HandleFunc(url+"/category", categoryHandler.Create()).Methods("POST")
-	r.HandleFunc(url+"/category/all", categoryHandler.FindAll()).Methods("GET")
+	r.HandleFunc(url+"/category/all", categoryHandler.GetAll()).Methods("GET")
 	r.HandleFunc(url+"/category/{id}", categoryHandler.Delete()).Methods("DELETE")
 }
 

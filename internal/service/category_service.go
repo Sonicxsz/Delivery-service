@@ -11,7 +11,7 @@ import (
 )
 
 type ICategoryService interface {
-	FindAll(cxt context.Context) ([]*dto.CategoryResponse, error)
+	GetAll(cxt context.Context) ([]*dto.CategoryResponse, error)
 	Create(cxt context.Context, req *dto.CategoryRequest) (*dto.CategoryResponse, error)
 	Delete(cxt context.Context, id int64) error
 }
@@ -26,7 +26,7 @@ func NewCategoryService(categoryRepository *store.CategoryRepository) *CategoryS
 	}
 }
 
-func (s *CategoryService) FindAll(cxt context.Context) ([]*dto.CategoryResponse, error) {
+func (s *CategoryService) GetAll(cxt context.Context) ([]*dto.CategoryResponse, error) {
 	all, err := s.categoryRepository.FindAll(cxt)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (s *CategoryService) Create(cxt context.Context, req *dto.CategoryRequest) 
 	return &dto.CategoryResponse{
 		Id:   created.Id,
 		Name: created.Name,
-		Code: category.Code,
+		Code: created.Code,
 	}, nil
 }
 
