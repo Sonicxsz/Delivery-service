@@ -3,7 +3,7 @@ package service
 import (
 	"arabic/internal/dto"
 	"arabic/internal/model"
-	"arabic/internal/store"
+	"arabic/internal/repository"
 	"arabic/pkg/errors"
 	"context"
 	"fmt"
@@ -11,7 +11,7 @@ import (
 )
 
 type TagService struct {
-	tagRepository store.ITagRepository
+	tagRepository repository.ITagRepository
 }
 
 type ITagService interface {
@@ -20,7 +20,7 @@ type ITagService interface {
 	Delete(cxt context.Context, id int64) error
 }
 
-func NewTagService(tagRepository *store.TagRepository) *TagService {
+func NewTagService(tagRepository *repository.TagRepository) *TagService {
 	return &TagService{
 		tagRepository: tagRepository,
 	}

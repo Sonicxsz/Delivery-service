@@ -2,9 +2,9 @@ package service
 
 import (
 	"arabic/internal/model"
-	security "arabic/internal/security/auth"
-	"arabic/internal/store"
+	"arabic/internal/repository"
 	"arabic/pkg/errors"
+	security2 "arabic/pkg/security/auth"
 	"context"
 	"fmt"
 	"net/http"
@@ -17,11 +17,11 @@ type IUserService interface {
 }
 
 type UserService struct {
-	userRepository store.IUserRepository
-	jwtConfig      *security.JWTConfig
+	userRepository repository.IUserRepository
+	jwtConfig      *security2.JWTConfig
 }
 
-func NewUserService(userRepo store.IUserRepository, jwtConfig *security.JWTConfig) *UserService {
+func NewUserService(userRepo repository.IUserRepository, jwtConfig *security2.JWTConfig) *UserService {
 	return &UserService{
 		userRepository: userRepo,
 		jwtConfig:      jwtConfig,
@@ -29,7 +29,7 @@ func NewUserService(userRepo store.IUserRepository, jwtConfig *security.JWTConfi
 }
 
 func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
-	hashedPassword, err := security.GenerateHashFromPassword(user.Password)
+	hashedPassword, err := security2.GenerateHashFromPassword(user.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*model.
 	}
 
 	if strings.Contains(err.Error(), "duplicate key") {
-		return s.handleDuplicateErrorMessage(err, user)
+		return nil, s.handleDuplicateErrorMessage(err, user)
 	}
 
 	return nil, errors.NewServiceError(http.StatusInternalServerError, "Failed to create user", err)
@@ -54,7 +54,7 @@ func (s *UserService) Login(ctx context.Context, email, password string) (*model
 		return nil, "", err
 	}
 
-	token, err := security.GenerateJWT(string(user.Id), s.jwtConfig)
+	token, err := security2.GenerateJWT(string(user.Id), s.jwtConfig)
 	if err != nil {
 		return nil, "", errors.NewServiceError(http.StatusInternalServerError, "Something went wrong. pls try later", err)
 	}
@@ -65,16 +65,16 @@ func (s *UserService) Login(ctx context.Context, email, password string) (*model
 func (s *UserService) verifyCredentials(cxt context.Context, email, password string) (*model.User, error) {
 	user, err := s.userRepository.FindByEmail(cxt, email)
 
-	if err != nil || !security.CompareHashAndPassword(password, user.Password) {
+	if err != nil || !security2.CompareHashAndPassword(password, user.Password) {
 		return nil, errors.NewServiceError(http.StatusBadRequest, "Invalid username or password", err)
 	}
 
 	return user, nil
 }
 
-func (s *UserService) handleDuplicateErrorMessage(err error, user *model.User) (*model.User, error) {
+func (s *UserService) handleDuplicateErrorMessage(err error, user *model.User) error {
 	if strings.Contains(err.Error(), "email") {
-		return nil, errors.NewServiceError(http.StatusConflict, fmt.Sprintf("User with this email= [%s] already exists", user.Email), err)
+		return errors.NewServiceError(http.StatusConflict, fmt.Sprintf("User with this email= [%s] already exists", user.Email), err)
 	}
-	return nil, errors.NewServiceError(http.StatusConflict, fmt.Sprintf("User with this username= [%s] already exists", user.Username), err)
+	return errors.NewServiceError(http.StatusConflict, fmt.Sprintf("User with this username= [%s] already exists", user.Username), err)
 }

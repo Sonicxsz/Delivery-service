@@ -2,9 +2,9 @@ package builders
 
 import (
 	"arabic/internal/handlers"
-	security "arabic/internal/security/auth"
 	"arabic/internal/service"
 	"arabic/internal/store"
+	"arabic/pkg/security/auth"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -34,6 +34,15 @@ func BuildRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfi
 	r.HandleFunc(url+"/category", categoryHandler.Create()).Methods("POST")
 	r.HandleFunc(url+"/category/all", categoryHandler.GetAll()).Methods("GET")
 	r.HandleFunc(url+"/category/{id}", categoryHandler.Delete()).Methods("DELETE")
+
+	//Catalog
+	catalogService := service.NewCatalogService(store.CatalogRepository())
+	catalogHandler := handlers.NewCatalogHandler(catalogService)
+
+	r.HandleFunc(url+"/catalog/all", catalogHandler.GetAll).Methods("GET")
+	r.HandleFunc(url+"/catalog", catalogHandler.Create).Methods("POST")
+	r.HandleFunc(url+"/catalog", catalogHandler.Delete).Methods("DELETE")
+
 }
 
 func BuildProtectedRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfig) {

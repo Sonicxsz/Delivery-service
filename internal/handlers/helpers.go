@@ -52,9 +52,9 @@ func NewErrorMessage(path, error string, status int) *ErrorMessage[interface{}] 
 
 func UserValidator(user *model.User) (bool, error) {
 	v := validator.New()
-	v.CheckString(user.Email).IsEmail()
-	v.CheckString(user.Username).IsValidUsername()
-	v.CheckString(user.Password).IsPassword()
+	v.CheckString(user.Email, "Email").IsEmail()
+	v.CheckString(user.Username, "Username").IsValidUsername()
+	v.CheckString(user.Password, "Password").IsPassword()
 
 	hasErrors, err := v.HasErrors(), v.GetErrors()
 
@@ -71,7 +71,7 @@ func handleServiceError(w http.ResponseWriter, err error, operation string) {
 		respondError(w, serviceErr.Code, serviceErr.Message)
 	} else {
 		log.Printf("Unexpected error type in %s: %v", operation, err)
-		respondError(w, http.StatusInternalServerError, "Something went wrong. pls try later")
+		respondError(w, http.StatusInternalServerError, errors.Error500)
 	}
 }
 

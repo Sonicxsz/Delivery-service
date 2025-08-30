@@ -14,7 +14,7 @@ CREATE TABLE catalog
         FOREIGN KEY(category_id)
             REFERENCES categories(id)
             ON DELETE RESTRICT
-            ON UPDATE CASCADE,
+            ON UPDATE CASCADE
 );
 
 
@@ -25,7 +25,7 @@ CREATE TABLE catalog_tags
     PRIMARY KEY (catalog_id, tag_id),
     CONSTRAINT fk_catalog
         FOREIGN KEY (catalog_id)
-            REFERENCES catalog(id)
+            REFERENCES categories(id)
             ON DELETE CASCADE,
     CONSTRAINT fk_tag
         FOREIGN KEY (tag_id)
@@ -33,4 +33,3 @@ CREATE TABLE catalog_tags
             ON DELETE CASCADE
 );
 
-/*Добавить индексы для таблицы*/

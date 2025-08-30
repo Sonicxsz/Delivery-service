@@ -1,5 +1,10 @@
 package errors
 
+const (
+	Error500   = "Something went wrong, try later..."
+	ErrorParse = "Cant parse data, please check provided data"
+)
+
 type ServiceError struct {
 	Code    int
 	Message string

@@ -3,7 +3,7 @@ package service
 import (
 	"arabic/internal/dto"
 	"arabic/internal/model"
-	"arabic/internal/store"
+	"arabic/internal/repository"
 	"arabic/pkg/errors"
 	"context"
 	"fmt"
@@ -17,10 +17,10 @@ type ICategoryService interface {
 }
 
 type CategoryService struct {
-	categoryRepository store.ICategoryRepository
+	categoryRepository repository.ICategoryRepository
 }
 
-func NewCategoryService(categoryRepository *store.CategoryRepository) *CategoryService {
+func NewCategoryService(categoryRepository *repository.CategoryRepository) *CategoryService {
 	return &CategoryService{
 		categoryRepository: categoryRepository,
 	}

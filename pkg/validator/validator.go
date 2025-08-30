@@ -3,6 +3,7 @@ package validator
 import (
 	"fmt"
 	"regexp"
+	"unicode/utf8"
 )
 
 type Validator struct {
@@ -21,11 +22,13 @@ func (v *Validator) GetErrors() []string {
 type StringValidator struct {
 	value string
 	errs  *Validator
+	name  string
 }
 
 type NumberValidator struct {
 	value any
 	errs  *Validator
+	name  string
 }
 
 var (
@@ -41,33 +44,37 @@ func New() *Validator {
 }
 
 // Создаем структуру с методами для проверки строк
-func (v *Validator) CheckString(value string) *StringValidator {
+func (v *Validator) CheckString(value string, name string) *StringValidator {
 	return &StringValidator{
 		value: value,
 		errs:  v,
+		name:  name,
 	}
 }
 
 // // Создаем структуру с методами для проверки чисел
-func (v *Validator) CheckNumber(value any) *NumberValidator {
+func (v *Validator) CheckNumber(value any, name string) *NumberValidator {
 	return &NumberValidator{
 		value: value,
 		errs:  v,
+		name:  name,
 	}
 }
 
 // Проверяет что длина строки не больше указанного
 func (v *StringValidator) IsMax(max int) *StringValidator {
-	if len(v.value) > max {
-		v.errs.errors = append(v.errs.errors, fmt.Sprintf("Max aviable length is %d, Provided: %s", max, v.value))
+	length := utf8.RuneCountInString(v.value)
+	if length > max {
+		v.errs.errors = append(v.errs.errors, fmt.Sprintf("[%s] - Max aviable length is %d, Provided: %d", v.name, max, length))
 	}
 	return v
 }
 
 // Проверяет что длина строки не меньше указанного
 func (v *StringValidator) IsMin(min int) *StringValidator {
-	if len(v.value) < min {
-		v.errs.errors = append(v.errs.errors, fmt.Sprintf("Min required length is %d, Provided: %s", min, v.value))
+	length := utf8.RuneCountInString(v.value)
+	if length < min {
+		v.errs.errors = append(v.errs.errors, fmt.Sprintf("[%s] - Min required length is %d, Provided: %d", v.name, min, length))
 	}
 	return v
 }
@@ -92,81 +99,74 @@ func (v *StringValidator) IsPassword() *StringValidator {
 // Проверяет что строка соответствует требованиям имени пользователя
 func (v *StringValidator) IsValidUsername() *StringValidator {
 	if !usernameRegex.MatchString(v.value) {
-		v.errs.errors = append(v.errs.errors, "Invalid username. Must be 3–16 characters long and contain only letters, digits, hyphens (-), or underscores (_).")
+		v.errs.errors = append(v.errs.errors, "[%s] - Invalid username. Must be 3–16 characters long and contain only letters, digits, hyphens (-), or underscores (_).")
 
 	}
 	return v
 }
 
 // Проверяет что число не меньше указанного
-func (v *NumberValidator) IsMin(min int) *NumberValidator {
-	hasErr, err := false, fmt.Sprintf("Min required: %d, Provided: %d", min, v.value)
+func (v *NumberValidator) IsMin(min float64) *NumberValidator {
+	value, ok := v.toInt64()
 
-	switch val := v.value.(type) {
-	case int:
-		if val < min {
-			hasErr = true
-		}
-	case int8:
-		if int(val) < min {
-			hasErr = true
-		}
-	case int16:
-		if int(val) < min {
-			hasErr = true
-		}
-	case int32:
-		if int(val) < min {
-			hasErr = true
-		}
-	case int64:
-		if val < int64(min) {
-			hasErr = true
-		}
-	default:
-		hasErr = true
-		err = fmt.Sprintf("Unsupported type: %T", v.value)
+	if !ok {
+		v.errs.errors = append(v.errs.errors, fmt.Sprintf("[%s] - Unsupported type: %T", v.name, v.value))
+		return v
 	}
+	if value < min {
+		v.errs.errors = append(v.errs.errors, fmt.Sprintf("[%s] - Min required: %g, Provided: %g", v.name, min, value))
 
-	if hasErr {
-		v.errs.errors = append(v.errs.errors, err)
 	}
-
 	return v
 }
 
 // Проверяет что число не больше указанного
-func (v *NumberValidator) IsMax(max int) *NumberValidator {
-	hasErr, err := false, fmt.Sprintf("Max aviable: %d, Provided: %d", max, v.value)
+func (v *NumberValidator) IsMax(max float64) *NumberValidator {
+	value, ok := v.toInt64()
 
-	switch val := v.value.(type) {
-	case int:
-		if val > max {
-			hasErr = true
-		}
-	case int8:
-		if int(val) < max {
-			hasErr = true
-		}
-	case int16:
-		if int(val) < max {
-			hasErr = true
-		}
-	case int32:
-		if int(val) < max {
-			hasErr = true
-		}
-	case int64:
-		if val < int64(max) {
-			hasErr = true
-		}
-	default:
-		hasErr = true
-		err = fmt.Sprintf("Unsupported type: %T", v.value)
+	if !ok {
+		v.errs.errors = append(v.errs.errors, fmt.Sprintf("[%s] - Unsupported type: %T", v.name, v.value))
+		return v
 	}
 
-	if hasErr {
-		v.errs.errors = append(v.errs.errors, err)
+	if value > max {
+		v.errs.errors = append(v.errs.errors, fmt.Sprintf("[%s] - Max aviable: %g, Provided: %g", v.name, max, value))
 	}
 	return v
+}
+
+// Преобразует любой числовой тип в int64 для единого сравнения
+func (v *NumberValidator) toInt64() (float64, bool) {
+	switch val := v.value.(type) {
+	case int:
+		return float64(val), true
+	case int8:
+		return float64(val), true
+	case int16:
+		return float64(val), true
+	case int32:
+		return float64(val), true
+	case int64:
+		return float64(val), true
+	case uint:
+		return float64(val), true
+	case uint8:
+		return float64(val), true
+	case uint16:
+		return float64(val), true
+	case uint32:
+		return float64(val), true
+	case uint64:
+		// Проверяем переполнение
+		if val > 9223372036854775807 { // math.MaxInt64
+			return 0, false
+		}
+		return float64(val), true
+	case float32:
+		return float64(val), true
+	case float64:
+		return val, true
+	default:
+		return 0, false
+	}
 }
