@@ -52,11 +52,11 @@ func NewErrorMessage(path, error string, status int) *ErrorMessage[interface{}] 
 
 func UserValidator(user *model.User) (bool, error) {
 	v := validator.New()
-	v.CheckEmail(user.Email)
-	v.CheckUsername(user.Username)
-	v.CheckPassword(user.Password)
+	v.CheckString(user.Email).IsEmail()
+	v.CheckString(user.Username).IsValidUsername()
+	v.CheckString(user.Password).IsPassword()
 
-	hasErrors, err := v.HasErrors()
+	hasErrors, err := v.HasErrors(), v.GetErrors()
 
 	if hasErrors {
 		return hasErrors, errors.NewServiceError(http.StatusBadRequest, strings.Join(err, ", "), nil)
