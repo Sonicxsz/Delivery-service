@@ -24,7 +24,7 @@ func main() {
 	}
 
 	if err := config.Storage.RunMigrations(); err != nil {
-		log.Fatalf("Migration error: %v", err)
+		log.Fatalf("Migration error: %v", err.Error())
 	}
 
 	api := server.New(config)

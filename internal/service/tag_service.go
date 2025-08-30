@@ -11,7 +11,7 @@ import (
 )
 
 type TagService struct {
-	tagRepository *store.TagRepository
+	tagRepository store.ITagRepository
 }
 
 type ITagService interface {
