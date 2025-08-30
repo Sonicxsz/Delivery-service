@@ -43,9 +43,7 @@ func (s *Store) Stop() {
 
 func (s *Store) UserRepository() *UserRepository {
 	if s.userRepository == nil {
-		s.userRepository = &UserRepository{
-			store: s,
-		}
+		s.userRepository = NewUserRepository(s.db)
 	}
 
 	return s.userRepository
@@ -53,9 +51,7 @@ func (s *Store) UserRepository() *UserRepository {
 
 func (s *Store) TagRepository() *TagRepository {
 	if s.tagRepository == nil {
-		s.tagRepository = &TagRepository{
-			store: s,
-		}
+		s.tagRepository = NewTagRepository(s.db)
 	}
 
 	return s.tagRepository
@@ -63,9 +59,7 @@ func (s *Store) TagRepository() *TagRepository {
 
 func (s *Store) CategoryRepository() *CategoryRepository {
 	if s.categoryRepository == nil {
-		s.categoryRepository = &CategoryRepository{
-			store: s,
-		}
+		s.categoryRepository = NewCategoryRepository(s.db)
 	}
 
 	return s.categoryRepository

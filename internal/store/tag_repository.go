@@ -3,12 +3,23 @@ package store
 import (
 	"arabic/internal/model"
 	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type TagRepository struct {
-	store *Store
+	db *pgxpool.Pool
+}
+
+func NewTagRepository(db *pgxpool.Pool) *TagRepository {
+	return &TagRepository{db: db}
+}
+
+type ITagRepository interface {
+	FindAll(ctx context.Context) ([]*model.Tag, error)
+	Delete(ctx context.Context, id int64) (*pgconn.CommandTag, error)
+	Create(ctx context.Context, tag *model.Tag) (*model.Tag, error)
 }
 
 var (
@@ -18,7 +29,7 @@ var (
 )
 
 func (t *TagRepository) FindAll(ctx context.Context) ([]*model.Tag, error) {
-	query, err := t.store.db.Query(ctx, findAllTags)
+	query, err := t.db.Query(ctx, findAllTags)
 
 	if err != nil {
 		return nil, err
@@ -39,7 +50,7 @@ func (t *TagRepository) FindAll(ctx context.Context) ([]*model.Tag, error) {
 }
 
 func (t *TagRepository) Delete(ctx context.Context, id int64) (*pgconn.CommandTag, error) {
-	result, err := t.store.db.Exec(ctx, deleteTag, id)
+	result, err := t.db.Exec(ctx, deleteTag, id)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +60,7 @@ func (t *TagRepository) Delete(ctx context.Context, id int64) (*pgconn.CommandTa
 
 func (t *TagRepository) Create(ctx context.Context, tag *model.Tag) (*model.Tag, error) {
 	created := &model.Tag{}
-	err := t.store.db.QueryRow(ctx, createTag, tag.Name).Scan(&created.Id, &created.Name)
+	err := t.db.QueryRow(ctx, createTag, tag.Name).Scan(&created.Id, &created.Name)
 	if err != nil {
 		return nil, err
 	}

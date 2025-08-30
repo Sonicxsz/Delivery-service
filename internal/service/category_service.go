@@ -17,7 +17,7 @@ type ICategoryService interface {
 }
 
 type CategoryService struct {
-	categoryRepository *store.CategoryRepository
+	categoryRepository store.ICategoryRepository
 }
 
 func NewCategoryService(categoryRepository *store.CategoryRepository) *CategoryService {

@@ -3,8 +3,8 @@ log_level="warn"
 log_dir="./logs/"
 
 [storage]
-db_conn_string="postgres://user:user@localhost:5432/arabic-app-local?sslmode=disable"
-db_migrations_url="postgres://user:user@localhost:5432/arabic-app-local?sslmode=disable&search_path=test"
+db_conn_string="postgres://user:user@localhost:5432/postgres?sslmode=disable"
+db_migrations_url="postgres://user:user@localhost:5432/postgres?sslmode=disable"
 db_migrations_path="file://./migrations"
 
 [jwt]

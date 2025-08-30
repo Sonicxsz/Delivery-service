@@ -3,10 +3,22 @@ package store
 import (
 	"arabic/internal/model"
 	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserRepository struct {
-	store *Store
+	db *pgxpool.Pool
+}
+
+func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
+	return &UserRepository{
+		db: pool,
+	}
+}
+
+type IUserRepository interface {
+	Create(cxt context.Context, u *model.User) (*model.User, error)
+	FindByEmail(cxt context.Context, email string) (*model.User, error)
 }
 
 var (
@@ -15,7 +27,7 @@ var (
 )
 
 func (ur *UserRepository) Create(cxt context.Context, u *model.User) (*model.User, error) {
-	err := ur.store.db.QueryRow(cxt, insertUser, u.Email, u.Username, u.Password).Scan(&u.Id)
+	err := ur.db.QueryRow(cxt, insertUser, u.Email, u.Username, u.Password).Scan(&u.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +37,7 @@ func (ur *UserRepository) Create(cxt context.Context, u *model.User) (*model.Use
 
 func (ur *UserRepository) FindByEmail(cxt context.Context, email string) (*model.User, error) {
 	user := model.User{}
-	err := ur.store.db.QueryRow(cxt, searchUserByEmail, email).Scan(&user.Id, &user.Username, &user.Password, &user.Email)
+	err := ur.db.QueryRow(cxt, searchUserByEmail, email).Scan(&user.Id, &user.Username, &user.Password, &user.Email)
 
 	if err != nil {
 		return nil, err

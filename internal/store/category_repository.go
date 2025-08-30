@@ -3,12 +3,23 @@ package store
 import (
 	"arabic/internal/model"
 	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type CategoryRepository struct {
-	store *Store
+	db *pgxpool.Pool
+}
+
+func NewCategoryRepository(db *pgxpool.Pool) *CategoryRepository {
+	return &CategoryRepository{db: db}
+}
+
+type ICategoryRepository interface {
+	FindAll(ctx context.Context) ([]*model.Category, error)
+	Delete(ctx context.Context, id int64) (*pgconn.CommandTag, error)
+	Create(ctx context.Context, category *model.Category) (*model.Category, error)
 }
 
 var (
@@ -18,7 +29,7 @@ var (
 )
 
 func (t *CategoryRepository) FindAll(ctx context.Context) ([]*model.Category, error) {
-	query, err := t.store.db.Query(ctx, findAllCategory)
+	query, err := t.db.Query(ctx, findAllCategory)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +49,7 @@ func (t *CategoryRepository) FindAll(ctx context.Context) ([]*model.Category, er
 }
 
 func (t *CategoryRepository) Delete(ctx context.Context, id int64) (*pgconn.CommandTag, error) {
-	result, err := t.store.db.Exec(ctx, deleteCategory, id)
+	result, err := t.db.Exec(ctx, deleteCategory, id)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +59,7 @@ func (t *CategoryRepository) Delete(ctx context.Context, id int64) (*pgconn.Comm
 
 func (t *CategoryRepository) Create(ctx context.Context, category *model.Category) (*model.Category, error) {
 	created := &model.Category{}
-	err := t.store.db.QueryRow(ctx, createCategory, category.Name, category.Code).Scan(&created.Id, &created.Name, &created.Code)
+	err := t.db.QueryRow(ctx, createCategory, category.Name, category.Code).Scan(&created.Id, &created.Name, &created.Code)
 	if err != nil {
 		return nil, err
 	}

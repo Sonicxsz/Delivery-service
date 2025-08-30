@@ -21,11 +21,15 @@ func (c *Config) RunMigrations() error {
 		c.DbMigrationsPath,
 		c.DbMigrationsUrl,
 	)
+	if err != nil {
+		return err
+	}
 
 	if err != nil {
 		return err
 	}
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+	if err := m.Up(); err != nil {
+
 		return err
 	}
 

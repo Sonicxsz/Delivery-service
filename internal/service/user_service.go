@@ -17,11 +17,11 @@ type IUserService interface {
 }
 
 type UserService struct {
-	userRepository *store.UserRepository
+	userRepository store.IUserRepository
 	jwtConfig      *security.JWTConfig
 }
 
-func NewUserService(userRepo *store.UserRepository, jwtConfig *security.JWTConfig) *UserService {
+func NewUserService(userRepo store.IUserRepository, jwtConfig *security.JWTConfig) *UserService {
 	return &UserService{
 		userRepository: userRepo,
 		jwtConfig:      jwtConfig,
