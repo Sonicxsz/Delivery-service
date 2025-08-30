@@ -23,9 +23,9 @@ type ICategoryRepository interface {
 }
 
 var (
-	findAllCategory = "select * from test.category order by id"
-	createCategory  = "insert into test.category (name, code) values ($1, $2) returning id, name, code"
-	deleteCategory  = "delete from test.category where id = $1"
+	findAllCategory = "select * from categories order by id"
+	createCategory  = "insert into categories (name, code) values ($1, $2) returning id, name, code"
+	deleteCategory  = "delete from categories where id = $1"
 )
 
 func (t *CategoryRepository) FindAll(ctx context.Context) ([]*model.Category, error) {

@@ -23,9 +23,9 @@ type ITagRepository interface {
 }
 
 var (
-	findAllTags = "select * from test.tags order by id"
-	createTag   = "insert into test.tags (name) values ($1) RETURNING id, name"
-	deleteTag   = "delete from test.tags where id = $1"
+	findAllTags = "select * from tags order by id"
+	createTag   = "insert into tags (name) values ($1) RETURNING id, name"
+	deleteTag   = "delete from tags where id = $1"
 )
 
 func (t *TagRepository) FindAll(ctx context.Context) ([]*model.Tag, error) {
