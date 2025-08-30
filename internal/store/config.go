@@ -25,11 +25,7 @@ func (c *Config) RunMigrations() error {
 		return err
 	}
 
-	if err != nil {
-		return err
-	}
-	if err := m.Up(); err != nil {
-
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		return err
 	}
 
