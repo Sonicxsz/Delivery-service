@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -54,7 +55,7 @@ func (s *UserService) Login(ctx context.Context, email, password string) (*model
 		return nil, "", err
 	}
 
-	token, err := security2.GenerateJWT(string(user.Id), s.jwtConfig)
+	token, err := security2.GenerateJWT(strconv.FormatInt(user.Id, 10), s.jwtConfig)
 	if err != nil {
 		return nil, "", errors.NewServiceError(http.StatusInternalServerError, "Something went wrong. pls try later", err)
 	}

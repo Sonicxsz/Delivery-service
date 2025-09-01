@@ -11,7 +11,7 @@ import (
 )
 
 type TagService struct {
-	tagRepository repository.ITagRepository
+	TagRepository repository.ITagRepository
 }
 
 type ITagService interface {
@@ -22,12 +22,12 @@ type ITagService interface {
 
 func NewTagService(tagRepository *repository.TagRepository) *TagService {
 	return &TagService{
-		tagRepository: tagRepository,
+		TagRepository: tagRepository,
 	}
 }
 
 func (s *TagService) GetAll(cxt context.Context) ([]*dto.TagResponse, error) {
-	all, err := s.tagRepository.FindAll(cxt)
+	all, err := s.TagRepository.FindAll(cxt)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (s *TagService) Create(cxt context.Context, req *dto.TagRequest) (*dto.TagR
 		Name: req.Name,
 	}
 
-	created, err := s.tagRepository.Create(cxt, tag)
+	created, err := s.TagRepository.Create(cxt, tag)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (s *TagService) Create(cxt context.Context, req *dto.TagRequest) (*dto.TagR
 }
 
 func (s *TagService) Delete(cxt context.Context, id int64) error {
-	tag, err := s.tagRepository.Delete(cxt, id)
+	tag, err := s.TagRepository.Delete(cxt, id)
 	if err != nil {
 		return err
 	} else if tag.RowsAffected() == 0 {

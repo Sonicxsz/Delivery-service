@@ -1,8 +1,10 @@
 package errors
 
 const (
-	Error500   = "Something went wrong, try later..."
-	ErrorParse = "Cant parse data, please check provided data"
+	Error500           = "Something went wrong, try later..."
+	ErrorParse         = "Cant parse data, please check provided data"
+	ErrorNotFoundById  = "Nothing found, please check the provided id"
+	ErrorGetQueryParam = "Please check provided params"
 )
 
 type ServiceError struct {

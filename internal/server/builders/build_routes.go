@@ -38,10 +38,11 @@ func BuildRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfi
 	//Catalog
 	catalogService := service.NewCatalogService(store.CatalogRepository())
 	catalogHandler := handlers.NewCatalogHandler(catalogService)
-
 	r.HandleFunc(url+"/catalog/all", catalogHandler.GetAll).Methods("GET")
 	r.HandleFunc(url+"/catalog", catalogHandler.Create).Methods("POST")
-	r.HandleFunc(url+"/catalog", catalogHandler.Delete).Methods("DELETE")
+	r.HandleFunc(url+"/catalog/{id}", catalogHandler.Delete).Methods("DELETE")
+	r.HandleFunc(url+"/catalog", catalogHandler.Update).Methods("PATCH")
+	r.HandleFunc(url+"/catalog/{id}", catalogHandler.GetById).Methods("GET")
 
 }
 

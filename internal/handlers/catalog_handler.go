@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 	"strings"
@@ -21,9 +22,10 @@ func NewCatalogHandler(service service.ICatalogService) *CatalogHandler {
 }
 
 func (c *CatalogHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
 
-	if id == "" {
+	if id == "" || !ok {
 		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, "Item Id not provided", nil), "Catalog: Delete item")
 		return
 	}
@@ -50,9 +52,53 @@ func (c *CatalogHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	items, err := c.service.GetAll(context.Background())
 
 	if err != nil {
-		handleServiceError(w, errors.NewServiceError(http.StatusInternalServerError, errors.Error500, nil), "Catalog: Get All Catalog Items")
+		handleServiceError(w, err, "CategoryHandle GetManyById")
+		return
 	}
 	respondSuccess(w, http.StatusOK, items)
+}
+
+func (c *CatalogHandler) GetById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	itemId, err := strconv.ParseInt(vars["id"], 10, 64)
+
+	if err != nil {
+		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, errors.ErrorGetQueryParam, nil), "CategoryHandle GetById")
+		return
+	}
+	item, err := c.service.GetById(context.Background(), itemId)
+
+	if err != nil {
+		handleServiceError(w, err, "CategoryHandle GetManyById")
+		return
+	}
+
+	respondSuccess(w, http.StatusOK, item)
+	return
+}
+
+func (c *CatalogHandler) Update(w http.ResponseWriter, r *http.Request) {
+	req := dto.CatalogUpdateRequest{}
+	err := json.NewDecoder(r.Body).Decode(&req)
+
+	if err != nil {
+		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, errors.ErrorParse, nil), "CategoryHandle Update")
+		return
+	}
+
+	if ok, errStrings := req.IsValid(); !ok {
+		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, strings.Join(errStrings, "; "), nil), "CategoryHandle GetAll")
+		return
+	}
+
+	err = c.service.Update(context.Background(), &req)
+
+	if err != nil {
+		handleServiceError(w, err, "CategoryHandle Update")
+		return
+	}
+
+	respondSuccess(w, http.StatusOK, nil)
 }
 
 func (c *CatalogHandler) Create(w http.ResponseWriter, r *http.Request) {

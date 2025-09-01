@@ -17,14 +17,14 @@ type Logger struct {
 }
 
 func (l *Logger) Info(args ...interface{}) {
-	l.logger.Infoln(args)
+	l.logger.Infoln(args...)
 }
 func (l *Logger) Warn(args ...interface{}) {
-	l.logger.Warnln(args)
+	l.logger.Warnln(args...)
 }
 
 func (l *Logger) Error(args ...interface{}) {
-	l.logger.Errorln(args)
+	l.logger.Errorln(args...)
 }
 
 func (l *Logger) Close() {
@@ -41,6 +41,7 @@ func newLogger() *Logger {
 }
 
 func Init(level string, logDir string) error {
+
 	parsedLevel, err := logrus.ParseLevel(level)
 	if err != nil {
 		return err

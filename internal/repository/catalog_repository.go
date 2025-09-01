@@ -2,7 +2,10 @@ package repository
 
 import (
 	"arabic/internal/model"
+	"arabic/pkg/logger"
 	"context"
+	"errors"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -12,16 +15,11 @@ type CatalogRepository struct {
 
 type ICatalogRepository interface {
 	FindAll(ctx context.Context) ([]*model.Catalog, error)
-	//FindById(ctx context.Context, ids []int64) ([]*model.Catalog, error)
 	Delete(ctx context.Context, id int64) (bool, error)
 	Create(ctx context.Context, category *model.Catalog) (*model.Catalog, error)
+	Update(ctx context.Context, query string, values []any) (bool, error)
+	FindById(ctx context.Context, id int64) (*model.Catalog, bool, error)
 }
-
-var (
-	findAllCatalogItems = "select id, name, price, discount_percent, amount, category_id from catalog order by id"
-	createCatalogItem   = "insert into catalog (name, description, price, amount, discount_percent, sku, category_id) values ($1, $2, $3, $4, $5, $6, $7) returning id"
-	deleteCatalogItem   = "delete from catalog where id = $1"
-)
 
 func NewCatalogRepository(db *pgxpool.Pool) *CatalogRepository {
 	return &CatalogRepository{
@@ -29,8 +27,47 @@ func NewCatalogRepository(db *pgxpool.Pool) *CatalogRepository {
 	}
 }
 
+func (c *CatalogRepository) Update(ctx context.Context, queryParts string, values []any) (bool, error) {
+	query := "update catalog set " + " " + queryParts + " WHERE id = $1"
+	println(query)
+	tag, err := c.db.Exec(ctx, query, values...)
+
+	if err != nil {
+		return false, err
+	}
+
+	return tag.RowsAffected() != 0, nil
+}
+
+func (c *CatalogRepository) FindById(ctx context.Context, id int64) (*model.Catalog, bool, error) {
+	query := "SELECT id, name, price, discount_percent, amount, category_id, description, sku FROM catalog WHERE id = $1"
+
+	item := &model.Catalog{}
+
+	err := c.db.QueryRow(ctx, query, id).Scan(
+		&item.Id,
+		&item.Name,
+		&item.Price,
+		&item.DiscountPercent,
+		&item.Amount,
+		&item.CategoryId,
+		&item.Description,
+		&item.Sku,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
+
+	return item, true, nil
+}
+
 func (c *CatalogRepository) Delete(ctx context.Context, id int64) (bool, error) {
-	tag, err := c.db.Exec(ctx, deleteCatalogItem, id)
+	query := "delete from catalog where id = $1"
+	tag, err := c.db.Exec(ctx, query, id)
 
 	if err != nil {
 		return false, err
@@ -40,7 +77,8 @@ func (c *CatalogRepository) Delete(ctx context.Context, id int64) (bool, error) 
 }
 
 func (c *CatalogRepository) FindAll(ctx context.Context) ([]*model.Catalog, error) {
-	rows, err := c.db.Query(ctx, findAllCatalogItems)
+	query := "SELECT id, name, price, discount_percent, amount, category_id FROM catalog ORDER BY id"
+	rows, err := c.db.Query(ctx, query)
 
 	if err != nil {
 		return nil, err
@@ -49,9 +87,9 @@ func (c *CatalogRepository) FindAll(ctx context.Context) ([]*model.Catalog, erro
 	var catalogItems []*model.Catalog
 	for rows.Next() {
 		item := &model.Catalog{}
-		err1 := rows.Scan(&item.Id, &item.Name, &item.Price, &item.DiscountPercent, &item.Amount, &item.CategoryId)
-		if err1 != nil {
-			println(err1.Error())
+		err = rows.Scan(&item.Id, &item.Name, &item.Price, &item.DiscountPercent, &item.Amount, &item.CategoryId)
+		if err != nil {
+			logger.Log.Error("Catalog repository -> FindAll -> error: " + err.Error())
 			continue
 		}
 		catalogItems = append(catalogItems, item)
@@ -62,7 +100,8 @@ func (c *CatalogRepository) FindAll(ctx context.Context) ([]*model.Catalog, erro
 }
 
 func (c *CatalogRepository) Create(ctx context.Context, ci *model.Catalog) (*model.Catalog, error) {
-	err := c.db.QueryRow(ctx, createCatalogItem,
+	query := "insert into catalog (name, description, price, amount, discount_percent, sku, category_id) values ($1, $2, $3, $4, $5, $6, $7) returning id"
+	err := c.db.QueryRow(ctx, query,
 		ci.Name,
 		ci.Description,
 		ci.Price,
