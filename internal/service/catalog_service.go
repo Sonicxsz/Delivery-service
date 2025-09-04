@@ -96,16 +96,14 @@ func (c *CatalogService) GetById(ctx context.Context, id int64) (*dto.GetCatalog
 	}
 
 	resp := &dto.GetCatalogByIdResponse{
-		Id:          item.Id,
-		Description: item.Description,
-		Sku:         item.Sku,
-		CatalogBase: dto.CatalogBase{
-			Name:            item.Name,
-			Price:           item.Price,
-			Amount:          item.Amount,
-			CategoryId:      item.CategoryId,
-			DiscountPercent: item.DiscountPercent,
-		},
+		Id:              item.Id,
+		Description:     item.Description,
+		Sku:             item.Sku,
+		Name:            item.Name,
+		Price:           item.Price,
+		Amount:          item.Amount,
+		CategoryId:      item.CategoryId,
+		DiscountPercent: item.DiscountPercent,
 	}
 
 	return resp, nil
@@ -124,14 +122,12 @@ func (c *CatalogService) GetAll(cxt context.Context) ([]*dto.CatalogResponse, er
 
 	for _, item := range catalogItems {
 		catalogResp = append(catalogResp, &dto.CatalogResponse{
-			Id: item.Id,
-			CatalogBase: dto.CatalogBase{
-				Name:            item.Name,
-				Price:           item.Price,
-				CategoryId:      item.CategoryId,
-				Amount:          item.Amount,
-				DiscountPercent: item.DiscountPercent,
-			},
+			Id:              item.Id,
+			Name:            item.Name,
+			Price:           item.Price,
+			CategoryId:      item.CategoryId,
+			Amount:          item.Amount,
+			DiscountPercent: item.DiscountPercent,
 		})
 	}
 

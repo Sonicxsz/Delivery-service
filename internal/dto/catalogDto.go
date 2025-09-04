@@ -2,7 +2,8 @@ package dto
 
 import "arabic/pkg/validator"
 
-type CatalogBase struct {
+type CatalogResponse struct {
+	Id              int64   `json:"id"`
 	Name            string  `json:"name"`
 	Price           float32 `json:"price"`
 	Amount          int     `json:"amount"`
@@ -10,22 +11,25 @@ type CatalogBase struct {
 	CategoryId      int64   `json:"category_id"`
 }
 
-type CatalogResponse struct {
-	Id int64 `json:"id"`
-	CatalogBase
-}
-
 type CatalogCreateRequest struct {
-	CatalogBase
-	Description string `json:"description"`
-	Sku         string `json:"sku"`
+	Name            string  `json:"name"`
+	Price           float32 `json:"price"`
+	Amount          int     `json:"amount"`
+	DiscountPercent float32 `json:"discount_percent"`
+	CategoryId      int64   `json:"category_id"`
+	Description     string  `json:"description"`
+	Sku             string  `json:"sku"`
 }
 
 type GetCatalogByIdResponse struct {
-	Id int64 `json:"id"`
-	CatalogBase
-	Description string `json:"description"`
-	Sku         string `json:"sku"`
+	Id              int64   `json:"id"`
+	Name            string  `json:"name"`
+	Price           float32 `json:"price"`
+	Amount          int     `json:"amount"`
+	DiscountPercent float32 `json:"discount_percent"`
+	CategoryId      int64   `json:"category_id"`
+	Description     string  `json:"description"`
+	Sku             string  `json:"sku"`
 }
 
 type CatalogUpdateRequest struct {

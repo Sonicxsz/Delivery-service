@@ -98,9 +98,7 @@ func TestCatalogService_Create(t *testing.T) {
 			mockRepo.On("Create", mock.Anything, mock.Anything).Return(tc.mockValue, tc.mockError)
 
 			id, err := srv.Create(context.Background(), &dto.CatalogCreateRequest{
-				CatalogBase: dto.CatalogBase{
-					Name: mockData.Name,
-				},
+				Name: mockData.Name,
 			})
 
 			if tc.expectErr {
