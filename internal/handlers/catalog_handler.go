@@ -4,7 +4,6 @@ import (
 	"arabic/internal/dto"
 	"arabic/internal/service"
 	"arabic/pkg/errors"
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -37,7 +36,7 @@ func (c *CatalogHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.service.Delete(context.Background(), parsedId)
+	err = c.service.Delete(r.Context(), parsedId)
 
 	if err != nil {
 		handleServiceError(w, err, "Catalog: Delete item")
@@ -49,7 +48,7 @@ func (c *CatalogHandler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *CatalogHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	items, err := c.service.GetAll(context.Background())
+	items, err := c.service.GetAll(r.Context())
 
 	if err != nil {
 		handleServiceError(w, err, "CategoryHandle GetManyById")
@@ -66,7 +65,7 @@ func (c *CatalogHandler) GetById(w http.ResponseWriter, r *http.Request) {
 		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, errors.ErrorGetQueryParam, nil), "CategoryHandle GetById")
 		return
 	}
-	item, err := c.service.GetById(context.Background(), itemId)
+	item, err := c.service.GetById(r.Context(), itemId)
 
 	if err != nil {
 		handleServiceError(w, err, "CategoryHandle GetManyById")
@@ -91,7 +90,7 @@ func (c *CatalogHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.service.Update(context.Background(), &req)
+	err = c.service.Update(r.Context(), &req)
 
 	if err != nil {
 		handleServiceError(w, err, "CategoryHandle Update")
@@ -114,7 +113,7 @@ func (c *CatalogHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := c.service.Create(context.Background(), &req)
+	id, err := c.service.Create(r.Context(), &req)
 
 	if err != nil {
 		err = errors.NewServiceError(http.StatusBadRequest, err.Error(), err)

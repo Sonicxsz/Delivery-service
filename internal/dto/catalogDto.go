@@ -39,17 +39,6 @@ type CatalogUpdateRequest struct {
 	CategoryId      *int64   `json:"category_id"`
 }
 
-type CatalogGetManyRequest struct {
-	ID []any `json:"id"`
-}
-
-func (c *CatalogGetManyRequest) IsValid() (bool, []string) {
-	v := validator.New()
-	v.CheckNumber(len(c.ID), "Id").IsMin(1)
-
-	return v.HasErrors(), v.GetErrors()
-}
-
 func (c *CatalogCreateRequest) IsValid() (bool, []string) {
 	v := validator.Validator{}
 	v.CheckString(c.Name, "Name").IsMin(3).IsMax(50)
