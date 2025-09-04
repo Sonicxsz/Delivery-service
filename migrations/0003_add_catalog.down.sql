@@ -1,3 +1,3 @@
-DROP TABLE IF EXISTS catalog;
-DROP TABLE IF EXISTS catalog_tags;
+DROP TABLE IF EXISTS public.catalog;
+DROP TABLE IF EXISTS public.catalog_tags;
 

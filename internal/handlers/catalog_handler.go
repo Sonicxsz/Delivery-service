@@ -24,7 +24,7 @@ func (c *CatalogHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
 
-	if id == "" || !ok {
+	if !ok {
 		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, "Item Id not provided", nil), "Catalog: Delete item")
 		return
 	}
@@ -73,7 +73,6 @@ func (c *CatalogHandler) GetById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondSuccess(w, http.StatusOK, item)
-	return
 }
 
 func (c *CatalogHandler) Update(w http.ResponseWriter, r *http.Request) {

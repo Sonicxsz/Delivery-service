@@ -1,4 +1,4 @@
-CREATE TABLE catalog
+CREATE TABLE public.catalogs
 (
     id       BIGSERIAL  PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE catalog
 );
 
 
-CREATE TABLE catalog_tags
+CREATE TABLE public.catalog_tags
 (
     catalog_id BIGINT NOT NULL,
     tag_id BIGINT NOT NULL,

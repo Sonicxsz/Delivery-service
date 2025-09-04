@@ -28,8 +28,7 @@ func NewCatalogRepository(db *pgxpool.Pool) *CatalogRepository {
 }
 
 func (c *CatalogRepository) Update(ctx context.Context, queryParts string, values []any) (bool, error) {
-	query := "update catalog set " + " " + queryParts + " WHERE id = $1"
-	println(query)
+	query := "update public.catalogs set " + " " + queryParts + " WHERE id = $1"
 	tag, err := c.db.Exec(ctx, query, values...)
 
 	if err != nil {
@@ -40,7 +39,7 @@ func (c *CatalogRepository) Update(ctx context.Context, queryParts string, value
 }
 
 func (c *CatalogRepository) FindById(ctx context.Context, id int64) (*model.Catalog, bool, error) {
-	query := "SELECT id, name, price, discount_percent, amount, category_id, description, sku FROM catalog WHERE id = $1"
+	query := "SELECT id, name, price, discount_percent, amount, category_id, description, sku FROM public.catalogs WHERE id = $1"
 
 	item := &model.Catalog{}
 
@@ -66,7 +65,7 @@ func (c *CatalogRepository) FindById(ctx context.Context, id int64) (*model.Cata
 }
 
 func (c *CatalogRepository) Delete(ctx context.Context, id int64) (bool, error) {
-	query := "delete from catalog where id = $1"
+	query := "delete from public.catalogs where id = $1"
 	tag, err := c.db.Exec(ctx, query, id)
 
 	if err != nil {
@@ -77,7 +76,7 @@ func (c *CatalogRepository) Delete(ctx context.Context, id int64) (bool, error) 
 }
 
 func (c *CatalogRepository) FindAll(ctx context.Context) ([]*model.Catalog, error) {
-	query := "SELECT id, name, price, discount_percent, amount, category_id FROM catalog ORDER BY id"
+	query := "SELECT id, name, price, discount_percent, amount, category_id FROM public.catalogs ORDER BY id"
 	rows, err := c.db.Query(ctx, query)
 
 	if err != nil {
@@ -100,7 +99,7 @@ func (c *CatalogRepository) FindAll(ctx context.Context) ([]*model.Catalog, erro
 }
 
 func (c *CatalogRepository) Create(ctx context.Context, ci *model.Catalog) (*model.Catalog, error) {
-	query := "insert into catalog (name, description, price, amount, discount_percent, sku, category_id) values ($1, $2, $3, $4, $5, $6, $7) returning id"
+	query := "insert into public.catalogs (name, description, price, amount, discount_percent, sku, category_id) values ($1, $2, $3, $4, $5, $6, $7) returning id"
 	err := c.db.QueryRow(ctx, query,
 		ci.Name,
 		ci.Description,
