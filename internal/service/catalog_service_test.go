@@ -20,7 +20,7 @@ func (m *MockICatalogRepository) FindAll(ctx context.Context) ([]*model.Catalog,
 	args := m.Called(ctx)
 	return args.Get(0).([]*model.Catalog), args.Error(1)
 }
-func (m *MockICatalogRepository) Delete(ctx context.Context, id int64) (bool, error) {
+func (m *MockICatalogRepository) Delete(ctx context.Context, id uint) (bool, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(bool), args.Error(1)
 }
@@ -32,7 +32,7 @@ func (m *MockICatalogRepository) Update(ctx context.Context, query string, value
 	args := m.Called(ctx, query, values)
 	return args.Get(0).(bool), args.Error(1)
 }
-func (m *MockICatalogRepository) FindById(ctx context.Context, id int64) (*model.Catalog, bool, error) {
+func (m *MockICatalogRepository) FindById(ctx context.Context, id uint) (*model.Catalog, bool, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(*model.Catalog), args.Get(1).(bool), args.Error(2)
 }
@@ -41,7 +41,7 @@ func generateMockCatalogItems() func() *model.Catalog {
 	count := 1
 	return func() *model.Catalog {
 		item := &model.Catalog{
-			Id:              int64(count),
+			Id:              uint(count),
 			Amount:          150,
 			DiscountPercent: 0,
 			Price:           150,
@@ -103,7 +103,7 @@ func TestCatalogService_Create(t *testing.T) {
 
 			if tc.expectErr {
 				assert.Error(t, err)
-				assert.Equal(t, int64(0), id)
+				assert.Equal(t, uint(0), id)
 				if tc.hasDuplicate {
 					assert.Contains(t, err.Error(), "exist")
 				}

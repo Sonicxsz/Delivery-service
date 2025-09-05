@@ -3,12 +3,12 @@ package dto
 import "arabic/pkg/validator"
 
 type CatalogResponse struct {
-	Id              int64   `json:"id"`
+	Id              uint    `json:"id"`
 	Name            string  `json:"name"`
 	Price           float32 `json:"price"`
 	Amount          int     `json:"amount"`
 	DiscountPercent float32 `json:"discount_percent"`
-	CategoryId      int64   `json:"category_id"`
+	CategoryId      uint    `json:"category_id"`
 }
 
 type CatalogCreateRequest struct {
@@ -16,31 +16,31 @@ type CatalogCreateRequest struct {
 	Price           float32 `json:"price"`
 	Amount          int     `json:"amount"`
 	DiscountPercent float32 `json:"discount_percent"`
-	CategoryId      int64   `json:"category_id"`
+	CategoryId      uint    `json:"category_id"`
 	Description     string  `json:"description"`
 	Sku             string  `json:"sku"`
 }
 
 type GetCatalogByIdResponse struct {
-	Id              int64   `json:"id"`
+	Id              uint    `json:"id"`
 	Name            string  `json:"name"`
 	Price           float32 `json:"price"`
 	Amount          int     `json:"amount"`
 	DiscountPercent float32 `json:"discount_percent"`
-	CategoryId      int64   `json:"category_id"`
+	CategoryId      uint    `json:"category_id"`
 	Description     string  `json:"description"`
 	Sku             string  `json:"sku"`
 }
 
 type CatalogUpdateRequest struct {
-	Id              int64    `json:"id"`
+	Id              uint     `json:"id"`
 	Name            *string  `json:"name"`
 	Description     *string  `json:"description"`
 	Price           *float32 `json:"price"`
 	Amount          *int     `json:"amount"`
 	DiscountPercent *float32 `json:"discount_percent"`
 	Sku             *string  `json:"sku"`
-	CategoryId      *int64   `json:"category_id"`
+	CategoryId      *uint    `json:"category_id"`
 }
 
 func (c *CatalogCreateRequest) IsValid() (bool, []string) {

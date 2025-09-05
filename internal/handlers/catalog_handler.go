@@ -29,14 +29,14 @@ func (c *CatalogHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	parsedId, err := strconv.ParseInt(id, 10, 64)
+	parsedId, err := strconv.ParseUint(id, 10, 0)
 
 	if err != nil {
 		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, "Cannot parse provided id", nil), "Catalog: Delete item")
 		return
 	}
 
-	err = c.service.Delete(r.Context(), parsedId)
+	err = c.service.Delete(r.Context(), uint(parsedId))
 
 	if err != nil {
 		handleServiceError(w, err, "Catalog: Delete item")
@@ -59,13 +59,13 @@ func (c *CatalogHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 func (c *CatalogHandler) GetById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	itemId, err := strconv.ParseInt(vars["id"], 10, 64)
+	itemId, err := strconv.ParseUint(vars["id"], 10, 0)
 
 	if err != nil {
 		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, errors.ErrorGetQueryParam, nil), "CategoryHandle GetById")
 		return
 	}
-	item, err := c.service.GetById(r.Context(), itemId)
+	item, err := c.service.GetById(r.Context(), uint(itemId))
 
 	if err != nil {
 		handleServiceError(w, err, "CategoryHandle GetManyById")

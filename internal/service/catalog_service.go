@@ -14,10 +14,10 @@ import (
 
 type ICatalogService interface {
 	GetAll(cxt context.Context) ([]*dto.CatalogResponse, error)
-	Create(cxt context.Context, req *dto.CatalogCreateRequest) (int64, error)
-	Delete(cxt context.Context, id int64) error
+	Create(cxt context.Context, req *dto.CatalogCreateRequest) (uint, error)
+	Delete(cxt context.Context, id uint) error
 	Update(cxt context.Context, req *dto.CatalogUpdateRequest) error
-	GetById(ctx context.Context, id int64) (*dto.GetCatalogByIdResponse, error)
+	GetById(ctx context.Context, id uint) (*dto.GetCatalogByIdResponse, error)
 }
 
 type CatalogService struct {
@@ -28,7 +28,7 @@ func NewCatalogService(repo repository.ICatalogRepository) *CatalogService {
 	return &CatalogService{CatalogRepository: repo}
 }
 
-func (c *CatalogService) Delete(ctx context.Context, id int64) error {
+func (c *CatalogService) Delete(ctx context.Context, id uint) error {
 	ok, err := c.CatalogRepository.Delete(ctx, id)
 
 	if err != nil {
@@ -43,7 +43,7 @@ func (c *CatalogService) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (c *CatalogService) Create(cxt context.Context, req *dto.CatalogCreateRequest) (int64, error) {
+func (c *CatalogService) Create(cxt context.Context, req *dto.CatalogCreateRequest) (uint, error) {
 	item, err := c.CatalogRepository.Create(cxt, &model.Catalog{
 		Name:            req.Name,
 		Description:     req.Description,
@@ -83,7 +83,7 @@ func (c *CatalogService) Update(cxt context.Context, req *dto.CatalogUpdateReque
 	return nil
 }
 
-func (c *CatalogService) GetById(ctx context.Context, id int64) (*dto.GetCatalogByIdResponse, error) {
+func (c *CatalogService) GetById(ctx context.Context, id uint) (*dto.GetCatalogByIdResponse, error) {
 	item, ok, err := c.CatalogRepository.FindById(ctx, id)
 
 	if err != nil {

@@ -15,10 +15,10 @@ type CatalogRepository struct {
 
 type ICatalogRepository interface {
 	FindAll(ctx context.Context) ([]*model.Catalog, error)
-	Delete(ctx context.Context, id int64) (bool, error)
+	Delete(ctx context.Context, id uint) (bool, error)
 	Create(ctx context.Context, category *model.Catalog) (*model.Catalog, error)
 	Update(ctx context.Context, query string, values []any) (bool, error)
-	FindById(ctx context.Context, id int64) (*model.Catalog, bool, error)
+	FindById(ctx context.Context, id uint) (*model.Catalog, bool, error)
 }
 
 func NewCatalogRepository(db *pgxpool.Pool) *CatalogRepository {
@@ -38,7 +38,7 @@ func (c *CatalogRepository) Update(ctx context.Context, queryParts string, value
 	return tag.RowsAffected() != 0, nil
 }
 
-func (c *CatalogRepository) FindById(ctx context.Context, id int64) (*model.Catalog, bool, error) {
+func (c *CatalogRepository) FindById(ctx context.Context, id uint) (*model.Catalog, bool, error) {
 	query := "SELECT id, name, price, discount_percent, amount, category_id, description, sku FROM public.catalogs WHERE id = $1"
 
 	item := &model.Catalog{}
@@ -64,7 +64,7 @@ func (c *CatalogRepository) FindById(ctx context.Context, id int64) (*model.Cata
 	return item, true, nil
 }
 
-func (c *CatalogRepository) Delete(ctx context.Context, id int64) (bool, error) {
+func (c *CatalogRepository) Delete(ctx context.Context, id uint) (bool, error) {
 	query := "delete from public.catalogs where id = $1"
 	tag, err := c.db.Exec(ctx, query, id)
 
