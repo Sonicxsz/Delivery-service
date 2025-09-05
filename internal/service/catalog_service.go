@@ -54,7 +54,7 @@ func (c *CatalogService) Create(cxt context.Context, req *dto.CatalogCreateReque
 		CategoryId:      req.CategoryId,
 	})
 
-	if err != nil && c.hasDuplicates(err) {
+	if err != nil && isDuplicateError(err) {
 		return 0, c.getCatalogUniqFieldError(err, item)
 	}
 
@@ -196,10 +196,6 @@ func (c *CatalogService) prepareQueryForUpdate(req *dto.CatalogUpdateRequest) (s
 	}
 
 	return query, values
-}
-
-func (c *CatalogService) hasDuplicates(err error) bool {
-	return strings.Contains(err.Error(), "duplicate")
 }
 
 func (c *CatalogService) getCatalogUniqFieldError(err error, catalog *model.Catalog) error {
