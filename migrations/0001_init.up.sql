@@ -1,4 +1,4 @@
-CREATE TABLE users
+CREATE TABLE public.users
 (
     id       BIGSERIAL      NOT NULL PRIMARY KEY,
     email    VARCHAR UNIQUE NOT NULL,
@@ -6,7 +6,7 @@ CREATE TABLE users
     username     VARCHAR        NOT NULL UNIQUE
 );
 
-CREATE TABLE dictionary
+CREATE TABLE public.dictionary
 (
     id      BIGSERIAL NOT NULL PRIMARY KEY,
     arabic  VARCHAR   NOT NULL,

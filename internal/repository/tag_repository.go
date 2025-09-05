@@ -1,4 +1,4 @@
-package store
+package repository
 
 import (
 	"arabic/internal/model"
@@ -23,9 +23,9 @@ type ITagRepository interface {
 }
 
 var (
-	findAllTags = "select * from tags order by id"
-	createTag   = "insert into tags (name) values ($1) RETURNING id, name"
-	deleteTag   = "delete from tags where id = $1"
+	findAllTags = "select * from public.tags order by id"
+	createTag   = "insert into public.tags (name) values ($1) RETURNING id, name"
+	deleteTag   = "delete from public.tags where id = $1"
 )
 
 func (t *TagRepository) FindAll(ctx context.Context) ([]*model.Tag, error) {
