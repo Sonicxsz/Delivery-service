@@ -330,7 +330,7 @@ func TestCatalogService_GetById(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, item.Id, mockData.Id)
-				assert.IsType(t, &dto.GetCatalogByIdResponse{}, item)
+				assert.IsType(t, &dto.CatalogResponse{}, item)
 			}
 
 			mockRepo.AssertCalled(t, "FindById", mock.Anything, mock.Anything)

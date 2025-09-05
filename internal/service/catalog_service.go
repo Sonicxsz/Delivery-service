@@ -17,7 +17,7 @@ type ICatalogService interface {
 	Create(cxt context.Context, req *dto.CatalogCreateRequest) (uint, error)
 	Delete(cxt context.Context, id uint) error
 	Update(cxt context.Context, req *dto.CatalogUpdateRequest) error
-	GetById(ctx context.Context, id uint) (*dto.GetCatalogByIdResponse, error)
+	GetById(ctx context.Context, id uint) (*dto.CatalogResponse, error)
 }
 
 type CatalogService struct {
@@ -83,7 +83,7 @@ func (c *CatalogService) Update(cxt context.Context, req *dto.CatalogUpdateReque
 	return nil
 }
 
-func (c *CatalogService) GetById(ctx context.Context, id uint) (*dto.GetCatalogByIdResponse, error) {
+func (c *CatalogService) GetById(ctx context.Context, id uint) (*dto.CatalogResponse, error) {
 	item, ok, err := c.CatalogRepository.FindById(ctx, id)
 
 	if err != nil {
@@ -95,16 +95,7 @@ func (c *CatalogService) GetById(ctx context.Context, id uint) (*dto.GetCatalogB
 		return nil, errors.NewServiceError(http.StatusBadRequest, errors.ErrorNotFoundById, nil)
 	}
 
-	resp := &dto.GetCatalogByIdResponse{
-		Id:              item.Id,
-		Description:     item.Description,
-		Sku:             item.Sku,
-		Name:            item.Name,
-		Price:           item.Price,
-		Amount:          item.Amount,
-		CategoryId:      item.CategoryId,
-		DiscountPercent: item.DiscountPercent,
-	}
+	resp := item.ToResponse()
 
 	return resp, nil
 }
@@ -121,14 +112,7 @@ func (c *CatalogService) GetAll(cxt context.Context) ([]*dto.CatalogResponse, er
 	var catalogResp []*dto.CatalogResponse
 
 	for _, item := range catalogItems {
-		catalogResp = append(catalogResp, &dto.CatalogResponse{
-			Id:              item.Id,
-			Name:            item.Name,
-			Price:           item.Price,
-			CategoryId:      item.CategoryId,
-			Amount:          item.Amount,
-			DiscountPercent: item.DiscountPercent,
-		})
+		catalogResp = append(catalogResp, item.ToResponse())
 	}
 
 	return catalogResp, nil

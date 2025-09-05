@@ -76,7 +76,7 @@ func (c *CatalogRepository) Delete(ctx context.Context, id uint) (bool, error) {
 }
 
 func (c *CatalogRepository) FindAll(ctx context.Context) ([]*model.Catalog, error) {
-	query := "SELECT id, name, price, discount_percent, amount, category_id FROM public.catalogs ORDER BY id"
+	query := "SELECT id, name, price, discount_percent,  amount, category_id, description, sku FROM public.catalogs ORDER BY id"
 	rows, err := c.db.Query(ctx, query)
 
 	if err != nil {
@@ -86,7 +86,7 @@ func (c *CatalogRepository) FindAll(ctx context.Context) ([]*model.Catalog, erro
 	var catalogItems []*model.Catalog
 	for rows.Next() {
 		item := &model.Catalog{}
-		err = rows.Scan(&item.Id, &item.Name, &item.Price, &item.DiscountPercent, &item.Amount, &item.CategoryId)
+		err = rows.Scan(&item.Id, &item.Name, &item.Price, &item.DiscountPercent, &item.Amount, &item.CategoryId, &item.Description, &item.Sku)
 		if err != nil {
 			logger.Log.Error("Catalog repository -> FindAll -> error: " + err.Error())
 			continue

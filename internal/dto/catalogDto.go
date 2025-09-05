@@ -9,20 +9,11 @@ type CatalogResponse struct {
 	Amount          int     `json:"amount"`
 	DiscountPercent float32 `json:"discount_percent"`
 	CategoryId      uint    `json:"category_id"`
-}
-
-type CatalogCreateRequest struct {
-	Name            string  `json:"name"`
-	Price           float32 `json:"price"`
-	Amount          int     `json:"amount"`
-	DiscountPercent float32 `json:"discount_percent"`
-	CategoryId      uint    `json:"category_id"`
 	Description     string  `json:"description"`
 	Sku             string  `json:"sku"`
 }
 
-type GetCatalogByIdResponse struct {
-	Id              uint    `json:"id"`
+type CatalogCreateRequest struct {
 	Name            string  `json:"name"`
 	Price           float32 `json:"price"`
 	Amount          int     `json:"amount"`
