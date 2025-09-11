@@ -3,7 +3,8 @@ package handlers
 import (
 	"arabic/internal/dto"
 	"arabic/internal/service"
-	"arabic/pkg/errors"
+	"arabic/pkg/customError"
+	"arabic/pkg/fs"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -25,14 +26,14 @@ func (c *CatalogHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, ok := vars["id"]
 
 	if !ok {
-		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, "Item Id not provided", nil), "Catalog: Delete item")
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, "Item Id not provided", nil), "Catalog: Delete item")
 		return
 	}
 
 	parsedId, err := strconv.ParseUint(id, 10, 0)
 
 	if err != nil {
-		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, "Cannot parse provided id", nil), "Catalog: Delete item")
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, "Cannot parse provided id", nil), "Catalog: Delete item")
 		return
 	}
 
@@ -47,32 +48,39 @@ func (c *CatalogHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (c *CatalogHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	items, err := c.service.GetAll(r.Context())
+func (c *CatalogHandler) GetAll(fs fs.IFileSystemImage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		imagePrefix := "/" + fs.GetPath()
+		items, err := c.service.GetAll(r.Context(), imagePrefix)
 
-	if err != nil {
-		handleServiceError(w, err, "CategoryHandle GetManyById")
-		return
+		if err != nil {
+			handleServiceError(w, err, "CategoryHandle GetManyById")
+			return
+		}
+		respondSuccess(w, http.StatusOK, items)
 	}
-	respondSuccess(w, http.StatusOK, items)
 }
 
-func (c *CatalogHandler) GetById(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	itemId, err := strconv.ParseUint(vars["id"], 10, 0)
+func (c *CatalogHandler) GetById(fs fs.IFileSystemImage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		itemId, err := strconv.ParseUint(vars["id"], 10, 0)
 
-	if err != nil {
-		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, errors.ErrorGetQueryParam, nil), "CategoryHandle GetById")
-		return
+		if err != nil {
+			handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, customError.ErrorGetQueryParam, nil), "CategoryHandle GetById")
+			return
+		}
+
+		imagePrefix := "/" + fs.GetPath()
+		item, err := c.service.GetById(r.Context(), uint(itemId), imagePrefix)
+
+		if err != nil {
+			handleServiceError(w, err, "CategoryHandle GetManyById")
+			return
+		}
+
+		respondSuccess(w, http.StatusOK, item)
 	}
-	item, err := c.service.GetById(r.Context(), uint(itemId))
-
-	if err != nil {
-		handleServiceError(w, err, "CategoryHandle GetManyById")
-		return
-	}
-
-	respondSuccess(w, http.StatusOK, item)
 }
 
 func (c *CatalogHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -80,12 +88,12 @@ func (c *CatalogHandler) Update(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 
 	if err != nil {
-		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, errors.ErrorParse, nil), "CategoryHandle Update")
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, customError.ErrorParse, nil), "CategoryHandle Update")
 		return
 	}
 
 	if ok, errStrings := req.IsValid(); !ok {
-		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, strings.Join(errStrings, "; "), nil), "CategoryHandle GetAll")
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, strings.Join(errStrings, "; "), nil), "CategoryHandle GetAll")
 		return
 	}
 
@@ -103,22 +111,43 @@ func (c *CatalogHandler) Create(w http.ResponseWriter, r *http.Request) {
 	req := dto.CatalogCreateRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, errors.ErrorParse, nil), "Catalog: Create Decode")
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, customError.ErrorParse, nil), "Catalog: Create Decode")
 		return
 	}
 
 	if ok, errStrings := req.IsValid(); !ok {
-		handleServiceError(w, errors.NewServiceError(http.StatusBadRequest, strings.Join(errStrings, "; "), nil), "CategoryHandle GetAll")
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, strings.Join(errStrings, "; "), nil), "CategoryHandle GetAll")
 		return
 	}
 
 	id, err := c.service.Create(r.Context(), &req)
 
 	if err != nil {
-		err = errors.NewServiceError(http.StatusBadRequest, err.Error(), err)
+		err = customError.NewServiceError(http.StatusBadRequest, err.Error(), err)
 		handleServiceError(w, err, "CategoryHandler Create")
 		return
 	}
 
 	respondSuccess(w, http.StatusCreated, fmt.Sprintf("Id: %d", id))
+}
+
+func (c *CatalogHandler) AddImage(fs fs.IFileSystemImage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req := &dto.AddImageRequest{}
+
+		err := json.NewDecoder(r.Body).Decode(req)
+		if err != nil {
+			handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, customError.ErrorParse, nil), "Catalog: AddImage Decode")
+			return
+		}
+
+		filename, err := c.service.AddImage(r.Context(), req, fs)
+
+		if err != nil {
+			handleServiceError(w, err, "Catalog: AddImage Service")
+			return
+		}
+
+		respondSuccess(w, 200, filename)
+	}
 }

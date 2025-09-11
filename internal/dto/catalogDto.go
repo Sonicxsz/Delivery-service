@@ -11,6 +11,7 @@ type CatalogResponse struct {
 	CategoryId      uint    `json:"category_id"`
 	Description     string  `json:"description"`
 	Sku             string  `json:"sku"`
+	ImageUrl        string  `json:"imageUrl"`
 }
 
 type CatalogCreateRequest struct {
@@ -32,6 +33,11 @@ type CatalogUpdateRequest struct {
 	DiscountPercent *float32 `json:"discount_percent"`
 	Sku             *string  `json:"sku"`
 	CategoryId      *uint    `json:"category_id"`
+}
+
+type AddImageRequest struct {
+	Image string `json:"image"`
+	Id    uint   `json:"id"`
 }
 
 func (c *CatalogCreateRequest) IsValid() (bool, []string) {

@@ -11,3 +11,10 @@ db_migrations_path="file://./migrations"
 jwt_secret_key="SOME_SECRET_KEY_ARABIC"
 jwt_audience="USER"
 jwt_issuer="http://Arabic.com"
+
+
+[fs]
+static_path="static"
+[fs.image]
+image_path="static/images/"
+

@@ -11,9 +11,10 @@ type Catalog struct {
 	DiscountPercent float32 `json:"discountPercent"`
 	Sku             string  `json:"sku"`
 	CategoryId      uint    `json:"categoryId"`
+	ImageUrl        string  `json:"imageUrl"`
 }
 
-func (c *Catalog) ToResponse() *dto.CatalogResponse {
+func (c *Catalog) ToResponse(imagePrefix string) *dto.CatalogResponse {
 	return &dto.CatalogResponse{
 		Id:              c.Id,
 		Description:     c.Description,
@@ -23,5 +24,6 @@ func (c *Catalog) ToResponse() *dto.CatalogResponse {
 		Amount:          c.Amount,
 		CategoryId:      c.CategoryId,
 		DiscountPercent: c.DiscountPercent,
+		ImageUrl:        imagePrefix + c.ImageUrl,
 	}
 }

@@ -2,6 +2,7 @@ package server
 
 import (
 	"arabic/internal/store"
+	"arabic/pkg/fs"
 	"arabic/pkg/security/auth"
 )
 
@@ -11,6 +12,7 @@ type Config struct {
 	LogDir   string `toml:"log_dir"`
 	Storage  *store.Config
 	JWT      *security.JWTConfig
+	FS       *fs.Config
 }
 
 func NewConfig() *Config {
@@ -19,5 +21,6 @@ func NewConfig() *Config {
 		LogLevel: "debug",
 		Storage:  store.NewConfig(),
 		JWT:      security.NewJWTConfig(),
+		FS:       fs.NewFSConfig(),
 	}
 }

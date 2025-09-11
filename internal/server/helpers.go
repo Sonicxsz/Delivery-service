@@ -3,18 +3,30 @@ package server
 import (
 	"arabic/internal/server/builders"
 	"arabic/internal/store"
+	"arabic/pkg/fs"
 	"arabic/pkg/logger"
-
 	"github.com/gorilla/mux"
 )
 
 func (a *Api) configureRouter() {
 	router := mux.NewRouter()
+	builder := &builders.Builder{
+		Router:    router,
+		Store:     a.store,
+		JwtConfig: a.config.JWT,
+		Fs:        a.fs,
+	}
 
-	builders.BuildRoutes(router, a.store, a.config.JWT)
+	builders.BuildRoutes(builder)
 	builders.BuildProtectedRoutes(router, a.store, a.config.JWT)
+	builders.BuildRoutesStatic(router, a.config.FS.Path)
 
+	//a.config.FS.Image.Path
 	a.router = router
+}
+
+func (a *Api) configureFileSystem() {
+	a.fs = fs.New(a.config.FS)
 }
 
 func (a *Api) configureLogger() error {
