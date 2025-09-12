@@ -205,7 +205,7 @@ func TestCatalogService_GetAll(t *testing.T) {
 			mockRepo.On("FindAll", mock.Anything).Return(tc.mockReturn, tc.mockError)
 
 			srv := &service.CatalogService{CatalogRepository: mockRepo}
-			result, err := srv.GetAll(context.Background())
+			result, err := srv.GetAll(context.Background(), "/test/")
 
 			if tc.expectErr {
 				assert.Error(t, err)
@@ -322,7 +322,7 @@ func TestCatalogService_GetById(t *testing.T) {
 			}
 			mockRepo.On("FindById", mock.Anything, mock.Anything).Return(tc.mockReturn, tc.mockOk, tc.mockError)
 
-			item, err := srv.GetById(context.Background(), mockData.Id)
+			item, err := srv.GetById(context.Background(), mockData.Id, "/test/")
 
 			if tc.expectErr {
 				assert.Error(t, err)
