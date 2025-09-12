@@ -62,10 +62,10 @@ func BuildRoutesStatic(r *mux.Router, fsPath string) {
 
 }
 
-func BuildProtectedRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfig) {
-	JWTMiddleware := security.NewJwtMiddleware(jwtConfig)
+func BuildProtectedRoutes(b *Builder) {
+	JWTMiddleware := security.NewJwtMiddleware(b.JwtConfig)
 
-	protected := r.PathPrefix("/api/v1").Subrouter()
+	protected := b.Router.PathPrefix("/api/v1").Subrouter()
 	protected.Use(JWTMiddleware.CheckJWT)
 
 	protected.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {

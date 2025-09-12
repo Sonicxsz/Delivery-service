@@ -12,6 +12,7 @@ type CatalogResponse struct {
 	Description     string  `json:"description"`
 	Sku             string  `json:"sku"`
 	ImageUrl        string  `json:"imageUrl"`
+	Weight          float32 `json:"weight"`
 }
 
 type CatalogCreateRequest struct {
@@ -22,6 +23,7 @@ type CatalogCreateRequest struct {
 	CategoryId      uint    `json:"category_id"`
 	Description     string  `json:"description"`
 	Sku             string  `json:"sku"`
+	Weight          float32 `json:"weight"`
 }
 
 type CatalogUpdateRequest struct {
@@ -33,6 +35,7 @@ type CatalogUpdateRequest struct {
 	DiscountPercent *float32 `json:"discount_percent"`
 	Sku             *string  `json:"sku"`
 	CategoryId      *uint    `json:"category_id"`
+	Weight          *float32 `json:"weight"`
 }
 
 type AddImageRequest struct {
@@ -48,7 +51,7 @@ func (c *CatalogCreateRequest) IsValid() (bool, []string) {
 	v.CheckNumber(c.DiscountPercent, "Discount").IsMin(0).IsMax(100)
 	v.CheckString(c.Sku, "Sku").IsMin(10).IsMax(64)
 	v.CheckNumber(c.CategoryId, "CategoryId").IsMin(1)
-
+	v.CheckNumber(c.Weight, "Weight").IsMin(1)
 	return !v.HasErrors(), v.GetErrors()
 }
 

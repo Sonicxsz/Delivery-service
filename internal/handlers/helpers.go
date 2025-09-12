@@ -6,14 +6,13 @@ import (
 	"arabic/pkg/validator"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"log"
 	"net/http"
 	"runtime"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
-	errors2 "github.com/pkg/errors"
 )
 
 type SuccessMessage[T any] struct {
@@ -67,7 +66,7 @@ func UserValidator(user *model.User) (bool, error) {
 
 func handleServiceError(w http.ResponseWriter, err error, operation string) {
 	var serviceErr *customError.ServiceError
-	if errors2.As(err, &serviceErr) {
+	if errors.As(err, &serviceErr) {
 		respondError(w, serviceErr.Code, serviceErr.Message)
 	} else {
 		log.Printf("Unexpected error type in %s: %v", operation, err)
@@ -79,8 +78,8 @@ func setAuthCookie(w http.ResponseWriter, token string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
 		Value:    token,
+		Path:     "/",
 		HttpOnly: true,
-		// нужно изучить другие параметры
 	})
 }
 

@@ -39,7 +39,7 @@ func (c *CatalogRepository) Update(ctx context.Context, queryParts string, value
 }
 
 func (c *CatalogRepository) FindById(ctx context.Context, id uint) (*model.Catalog, bool, error) {
-	query := "SELECT id, name, price, discount_percent,  amount, category_id, description, sku, image_url FROM public.catalogs WHERE id = $1"
+	query := "SELECT id, name, price, discount_percent,  amount, category_id, description, sku, image_url, weight FROM public.catalogs WHERE id = $1"
 
 	item := &model.Catalog{}
 
@@ -53,6 +53,7 @@ func (c *CatalogRepository) FindById(ctx context.Context, id uint) (*model.Catal
 		&item.Description,
 		&item.Sku,
 		&item.ImageUrl,
+		&item.Weight,
 	)
 
 	if err != nil {
@@ -77,7 +78,7 @@ func (c *CatalogRepository) Delete(ctx context.Context, id uint) (bool, error) {
 }
 
 func (c *CatalogRepository) FindAll(ctx context.Context) ([]*model.Catalog, error) {
-	query := "SELECT id, name, price, discount_percent,  amount, category_id, description, sku, image_url FROM public.catalogs ORDER BY id"
+	query := "SELECT id, name, price, discount_percent,  amount, category_id, description, sku, image_url, weight FROM public.catalogs ORDER BY id"
 	rows, err := c.db.Query(ctx, query)
 
 	if err != nil {
@@ -87,7 +88,7 @@ func (c *CatalogRepository) FindAll(ctx context.Context) ([]*model.Catalog, erro
 	var catalogItems []*model.Catalog
 	for rows.Next() {
 		item := &model.Catalog{}
-		err = rows.Scan(&item.Id, &item.Name, &item.Price, &item.DiscountPercent, &item.Amount, &item.CategoryId, &item.Description, &item.Sku, &item.ImageUrl)
+		err = rows.Scan(&item.Id, &item.Name, &item.Price, &item.DiscountPercent, &item.Amount, &item.CategoryId, &item.Description, &item.Sku, &item.ImageUrl, &item.Weight)
 		if err != nil {
 			logger.Log.Error("Catalog repository -> FindAll -> error: " + err.Error())
 			continue
@@ -100,7 +101,7 @@ func (c *CatalogRepository) FindAll(ctx context.Context) ([]*model.Catalog, erro
 }
 
 func (c *CatalogRepository) Create(ctx context.Context, ci *model.Catalog) (*model.Catalog, error) {
-	query := "insert into public.catalogs (name, description, price, amount, discount_percent, sku, category_id) values ($1, $2, $3, $4, $5, $6, $7) returning id"
+	query := "insert into public.catalogs (name, description, price, amount, discount_percent, sku, category_id, weight) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id"
 	err := c.db.QueryRow(ctx, query,
 		ci.Name,
 		ci.Description,
@@ -108,7 +109,8 @@ func (c *CatalogRepository) Create(ctx context.Context, ci *model.Catalog) (*mod
 		ci.Amount,
 		ci.DiscountPercent,
 		ci.Sku,
-		ci.CategoryId).Scan(&ci.Id)
+		ci.CategoryId,
+		ci.Weight).Scan(&ci.Id)
 
 	if err != nil {
 		return ci, err

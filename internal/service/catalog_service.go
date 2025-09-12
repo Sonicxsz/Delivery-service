@@ -54,6 +54,7 @@ func (c *CatalogService) Create(cxt context.Context, req *dto.CatalogCreateReque
 		Sku:             req.Sku,
 		DiscountPercent: req.DiscountPercent,
 		CategoryId:      req.CategoryId,
+		Weight:          req.Weight,
 	})
 
 	if err != nil && isDuplicateError(err) {
@@ -219,6 +220,11 @@ func (c *CatalogService) prepareQueryForUpdate(req *dto.CatalogUpdateRequest) (s
 	if req.Sku != nil {
 		fieldsForUpdate = append(fieldsForUpdate, fmt.Sprintf("sku = $%d", paramIndex))
 		values = append(values, *req.Sku)
+		paramIndex++
+	}
+	if req.Weight != nil {
+		fieldsForUpdate = append(fieldsForUpdate, fmt.Sprintf("weight = $%d", paramIndex))
+		values = append(values, *req.Weight)
 		paramIndex++
 	}
 

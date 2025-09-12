@@ -36,5 +36,5 @@ func (api *Api) Start() error {
 
 	api.configureRouter()
 
-	return http.ListenAndServe(api.config.BindAddr, api.router)
+	return http.ListenAndServe(api.config.BindAddr, corsMiddleware(api.router))
 }
