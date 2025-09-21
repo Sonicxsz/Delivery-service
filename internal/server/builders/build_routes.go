@@ -4,7 +4,9 @@ import (
 	"arabic/internal/handlers"
 	"arabic/internal/service"
 	"arabic/internal/store"
+	"arabic/pkg/fs"
 	"arabic/pkg/security/auth"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -14,42 +16,56 @@ var (
 	url = "/api/v1"
 )
 
-func BuildRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfig) {
+type Builder struct {
+	Router    *mux.Router
+	Store     *store.Store
+	JwtConfig *security.JWTConfig
+	Fs        *fs.FS
+}
+
+func BuildRoutes(b *Builder) {
 	//User
-	userService := service.NewUserService(store.UserRepository(), jwtConfig)
+	userService := service.NewUserService(b.Store.UserRepository(), b.JwtConfig)
 	userHandler := handlers.NewUserHandler(userService)
-	r.HandleFunc(url+"/user/register", userHandler.Create()).Methods("POST")
-	r.HandleFunc(url+"/user/login", userHandler.Login()).Methods("POST")
+	b.Router.HandleFunc(url+"/user/register", userHandler.Create()).Methods("POST")
+	b.Router.HandleFunc(url+"/user/login", userHandler.Login()).Methods("POST")
 
 	//Tag
-	tagService := service.NewTagService(store.TagRepository())
+	tagService := service.NewTagService(b.Store.TagRepository())
 	tagHandler := handlers.NewTagHandler(tagService)
-	r.HandleFunc(url+"/tag", tagHandler.Create()).Methods("POST")
-	r.HandleFunc(url+"/tag/all", tagHandler.GetAll()).Methods("GET")
-	r.HandleFunc(url+"/tag/{id}", tagHandler.Delete()).Methods("DELETE")
+	b.Router.HandleFunc(url+"/tag", tagHandler.Create()).Methods("POST")
+	b.Router.HandleFunc(url+"/tag/all", tagHandler.GetAll()).Methods("GET")
+	b.Router.HandleFunc(url+"/tag/{id}", tagHandler.Delete()).Methods("DELETE")
 
 	//Category
-	categoryService := service.NewCategoryService(store.CategoryRepository())
+	categoryService := service.NewCategoryService(b.Store.CategoryRepository())
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
-	r.HandleFunc(url+"/category", categoryHandler.Create()).Methods("POST")
-	r.HandleFunc(url+"/category/all", categoryHandler.GetAll()).Methods("GET")
-	r.HandleFunc(url+"/category/{id}", categoryHandler.Delete()).Methods("DELETE")
+	b.Router.HandleFunc(url+"/category", categoryHandler.Create()).Methods("POST")
+	b.Router.HandleFunc(url+"/category/all", categoryHandler.GetAll()).Methods("GET")
+	b.Router.HandleFunc(url+"/category/{id}", categoryHandler.Delete()).Methods("DELETE")
 
 	//Catalog
-	catalogService := service.NewCatalogService(store.CatalogRepository())
+	catalogService := service.NewCatalogService(b.Store.CatalogRepository())
 	catalogHandler := handlers.NewCatalogHandler(catalogService)
-	r.HandleFunc(url+"/catalog/all", catalogHandler.GetAll).Methods("GET")
-	r.HandleFunc(url+"/catalog", catalogHandler.Create).Methods("POST")
-	r.HandleFunc(url+"/catalog/{id}", catalogHandler.Delete).Methods("DELETE")
-	r.HandleFunc(url+"/catalog", catalogHandler.Update).Methods("PATCH")
-	r.HandleFunc(url+"/catalog/{id}", catalogHandler.GetById).Methods("GET")
+	b.Router.HandleFunc(url+"/catalog/all", catalogHandler.GetAll(b.Fs.Image)).Methods("GET")
+	b.Router.HandleFunc(url+"/catalog", catalogHandler.Create).Methods("POST")
+	b.Router.HandleFunc(url+"/catalog/{id}", catalogHandler.Delete).Methods("DELETE")
+	b.Router.HandleFunc(url+"/catalog", catalogHandler.Update).Methods("PATCH")
+	b.Router.HandleFunc(url+"/catalog/{id}", catalogHandler.GetById(b.Fs.Image)).Methods("GET")
+	b.Router.HandleFunc(url+"/catalog/add-image", catalogHandler.AddImage(b.Fs.Image)).Methods("POST")
 
 }
 
-func BuildProtectedRoutes(r *mux.Router, store *store.Store, jwtConfig *security.JWTConfig) {
-	JWTMiddleware := security.NewJwtMiddleware(jwtConfig)
+func BuildRoutesStatic(r *mux.Router, fsPath string) {
+	staticPrefix := fmt.Sprintf("/%s/", fsPath)
+	r.PathPrefix(staticPrefix).Handler(http.StripPrefix(staticPrefix, http.FileServer(http.Dir(fmt.Sprintf("./%s", fsPath)))))
 
-	protected := r.PathPrefix("/api/v1").Subrouter()
+}
+
+func BuildProtectedRoutes(b *Builder) {
+	JWTMiddleware := security.NewJwtMiddleware(b.JwtConfig)
+
+	protected := b.Router.PathPrefix("/api/v1").Subrouter()
 	protected.Use(JWTMiddleware.CheckJWT)
 
 	protected.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {

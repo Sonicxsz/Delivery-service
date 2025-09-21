@@ -2,18 +2,17 @@ package handlers
 
 import (
 	"arabic/internal/model"
-	"arabic/pkg/errors"
+	"arabic/pkg/customError"
 	"arabic/pkg/validator"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"log"
 	"net/http"
 	"runtime"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
-	errors2 "github.com/pkg/errors"
 )
 
 type SuccessMessage[T any] struct {
@@ -59,19 +58,19 @@ func UserValidator(user *model.User) (bool, error) {
 	hasErrors, err := v.HasErrors(), v.GetErrors()
 
 	if hasErrors {
-		return hasErrors, errors.NewServiceError(http.StatusBadRequest, strings.Join(err, ", "), nil)
+		return hasErrors, customError.NewServiceError(http.StatusBadRequest, strings.Join(err, ", "), nil)
 	}
 
 	return hasErrors, nil
 }
 
 func handleServiceError(w http.ResponseWriter, err error, operation string) {
-	var serviceErr *errors.ServiceError
-	if errors2.As(err, &serviceErr) {
+	var serviceErr *customError.ServiceError
+	if errors.As(err, &serviceErr) {
 		respondError(w, serviceErr.Code, serviceErr.Message)
 	} else {
 		log.Printf("Unexpected error type in %s: %v", operation, err)
-		respondError(w, http.StatusInternalServerError, errors.Error500)
+		respondError(w, http.StatusInternalServerError, customError.Error500)
 	}
 }
 
@@ -79,8 +78,8 @@ func setAuthCookie(w http.ResponseWriter, token string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
 		Value:    token,
+		Path:     "/",
 		HttpOnly: true,
-		// нужно изучить другие параметры
 	})
 }
 

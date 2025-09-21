@@ -50,7 +50,7 @@ func NewJwtMiddleware(config *JWTConfig) *jwtmiddleware.JWTMiddleware {
 	)
 
 	if err != nil {
-		println("Somethink went wrong while configuring JWT middleware", err.Error())
+		println("Something went wrong while configuring JWT middleware", err.Error())
 	}
 
 	return jwtmiddleware.New(jwtValidator.ValidateToken)
@@ -66,10 +66,6 @@ func GetClaimsFromContext(r *http.Request) (*CustomClaims, error) {
 	claims, ok := token.(*validator.ValidatedClaims)
 	if !ok {
 		return nil, errors.New("invalid claims type (expected ValidatedClaims)")
-	}
-
-	if !ok {
-		return nil, errors.New("invalid claims type")
 	}
 
 	customClaims, ok := claims.CustomClaims.(*CustomClaims)

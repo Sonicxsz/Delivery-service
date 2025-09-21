@@ -1,0 +1,3 @@
+ALTER TABLE public.catalogs
+    ADD COLUMN image_url TEXT DEFAULT '' NOT NULL,
+    ADD COLUMN weight DECIMAL(8,2) NOT NULL;

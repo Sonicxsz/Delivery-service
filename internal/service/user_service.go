@@ -3,8 +3,8 @@ package service
 import (
 	"arabic/internal/model"
 	"arabic/internal/repository"
-	"arabic/pkg/errors"
-	security2 "arabic/pkg/security/auth"
+	"arabic/pkg/customError"
+	"arabic/pkg/security/auth"
 	"context"
 	"fmt"
 	"net/http"
@@ -19,10 +19,10 @@ type IUserService interface {
 
 type UserService struct {
 	userRepository repository.IUserRepository
-	jwtConfig      *security2.JWTConfig
+	jwtConfig      *security.JWTConfig
 }
 
-func NewUserService(userRepo repository.IUserRepository, jwtConfig *security2.JWTConfig) *UserService {
+func NewUserService(userRepo repository.IUserRepository, jwtConfig *security.JWTConfig) *UserService {
 	return &UserService{
 		userRepository: userRepo,
 		jwtConfig:      jwtConfig,
@@ -30,7 +30,7 @@ func NewUserService(userRepo repository.IUserRepository, jwtConfig *security2.JW
 }
 
 func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
-	hashedPassword, err := security2.GenerateHashFromPassword(user.Password)
+	hashedPassword, err := security.GenerateHashFromPassword(user.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*model.
 		return nil, s.handleDuplicateErrorMessage(err, user)
 	}
 
-	return nil, errors.NewServiceError(http.StatusInternalServerError, "Failed to create user", err)
+	return nil, customError.NewServiceError(http.StatusInternalServerError, "Failed to create user", err)
 }
 
 func (s *UserService) Login(ctx context.Context, email, password string) (*model.User, string, error) {
@@ -55,9 +55,9 @@ func (s *UserService) Login(ctx context.Context, email, password string) (*model
 		return nil, "", err
 	}
 
-	token, err := security2.GenerateJWT(strconv.FormatInt(user.Id, 10), s.jwtConfig)
+	token, err := security.GenerateJWT(strconv.FormatInt(user.Id, 10), s.jwtConfig)
 	if err != nil {
-		return nil, "", errors.NewServiceError(http.StatusInternalServerError, "Something went wrong. pls try later", err)
+		return nil, "", customError.NewServiceError(http.StatusInternalServerError, "Something went wrong. pls try later", err)
 	}
 
 	return user, token, nil
@@ -66,8 +66,8 @@ func (s *UserService) Login(ctx context.Context, email, password string) (*model
 func (s *UserService) verifyCredentials(cxt context.Context, email, password string) (*model.User, error) {
 	user, err := s.userRepository.FindByEmail(cxt, email)
 
-	if err != nil || !security2.CompareHashAndPassword(password, user.Password) {
-		return nil, errors.NewServiceError(http.StatusBadRequest, "Invalid username or password", err)
+	if err != nil || !security.CompareHashAndPassword(password, user.Password) {
+		return nil, customError.NewServiceError(http.StatusBadRequest, "Invalid username or password", err)
 	}
 
 	return user, nil
@@ -75,7 +75,7 @@ func (s *UserService) verifyCredentials(cxt context.Context, email, password str
 
 func (s *UserService) handleDuplicateErrorMessage(err error, user *model.User) error {
 	if strings.Contains(err.Error(), "email") {
-		return errors.NewServiceError(http.StatusConflict, fmt.Sprintf("User with this email= [%s] already exists", user.Email), err)
+		return customError.NewServiceError(http.StatusConflict, fmt.Sprintf("User with this email= [%s] already exists", user.Email), err)
 	}
-	return errors.NewServiceError(http.StatusConflict, fmt.Sprintf("User with this username= [%s] already exists", user.Username), err)
+	return customError.NewServiceError(http.StatusConflict, fmt.Sprintf("User with this username= [%s] already exists", user.Username), err)
 }

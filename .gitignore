@@ -6,3 +6,5 @@ app
 postgres-data
 logs
 log.txt
+
+static

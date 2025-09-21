@@ -49,7 +49,6 @@ func (u *UserHandler) Login() http.HandlerFunc {
 			respondError(w, http.StatusBadRequest, "Invalid request payload")
 			return
 		}
-
 		user, token, err := u.service.Login(r.Context(), req.Email, req.Password)
 		if err != nil {
 			handleServiceError(w, err, "Login")

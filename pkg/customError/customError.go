@@ -1,4 +1,4 @@
-package errors
+package customError
 
 const (
 	Error500           = "Something went wrong, try later..."

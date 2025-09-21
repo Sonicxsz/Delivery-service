@@ -4,7 +4,7 @@ import (
 	"arabic/internal/dto"
 	"arabic/internal/model"
 	"arabic/internal/repository"
-	"arabic/pkg/errors"
+	"arabic/pkg/customError"
 	"context"
 	"fmt"
 	"net/http"
@@ -64,7 +64,7 @@ func (s *TagService) Delete(cxt context.Context, id int64) error {
 	if err != nil {
 		return err
 	} else if tag.RowsAffected() == 0 {
-		return errors.NewServiceError(http.StatusBadRequest, fmt.Sprintf("Entity not found with id %d", id), err)
+		return customError.NewServiceError(http.StatusBadRequest, fmt.Sprintf("Entity not found with id %d", id), err)
 	}
 	return nil
 }

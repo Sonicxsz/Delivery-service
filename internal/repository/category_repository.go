@@ -23,7 +23,7 @@ type ICategoryRepository interface {
 }
 
 var (
-	findAllCategory = "select * from public.categories order by id"
+	findAllCategory = "select id, name, code from public.categories order by id"
 	createCategory  = "insert into public.categories (name, code) values ($1, $2) returning id, name, code"
 	deleteCategory  = "delete from public.categories where id = $1"
 )

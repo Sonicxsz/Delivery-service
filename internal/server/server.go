@@ -1,8 +1,9 @@
 package server
 
 import (
-	"arabic/pkg/logger"
 	"arabic/internal/store"
+	"arabic/pkg/fs"
+	"arabic/pkg/logger"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -12,6 +13,7 @@ type Api struct {
 	config *Config
 	router *mux.Router
 	store  *store.Store
+	fs     *fs.FS
 }
 
 func New(config *Config) *Api {
@@ -30,7 +32,9 @@ func (api *Api) Start() error {
 		return err
 	}
 
+	api.configureFileSystem()
+
 	api.configureRouter()
 
-	return http.ListenAndServe(api.config.BindAddr, api.router)
+	return http.ListenAndServe(api.config.BindAddr, corsMiddleware(api.router))
 }
