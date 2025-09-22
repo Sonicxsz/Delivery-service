@@ -5,6 +5,7 @@ const (
 	ErrorParse         = "Cant parse data, please check provided data"
 	ErrorNotFoundById  = "Nothing found, please check the provided id"
 	ErrorGetQueryParam = "Please check provided params"
+	ErrorAuthorize     = "Cannot authorize with this token. Please log in again."
 )
 
 type ServiceError struct {

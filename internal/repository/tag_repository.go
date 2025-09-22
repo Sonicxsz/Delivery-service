@@ -23,7 +23,7 @@ type ITagRepository interface {
 }
 
 var (
-	findAllTags = "select * from public.tags order by id"
+	findAllTags = "select id, name, is_active, color from public.tags order by id"
 	createTag   = "insert into public.tags (name) values ($1) RETURNING id, name"
 	deleteTag   = "delete from public.tags where id = $1"
 )
@@ -38,8 +38,7 @@ func (t *TagRepository) FindAll(ctx context.Context) ([]*model.Tag, error) {
 	var tags []*model.Tag
 	for query.Next() {
 		tag := &model.Tag{}
-
-		err = query.Scan(&tag.Id, &tag.Name)
+		err = query.Scan(&tag.Id, &tag.Name, &tag.IsActive, &tag.Color)
 		if err != nil {
 			return nil, err
 		}

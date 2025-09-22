@@ -26,13 +26,12 @@ func (j *JWTConfig) emptyFunc(context.Context) (any, error) {
 }
 
 type CustomClaims struct {
-	UserID string `json:"user_id"`
+	UserEmail string `json:"email"`
 	jwt.RegisteredClaims
 }
 
 func (c *CustomClaims) Validate(ctx context.Context) error {
-
-	if c.UserID == "" {
+	if c.UserEmail == "" {
 		return errors.New("user_id cannot be empty")
 	}
 	return nil
@@ -53,7 +52,18 @@ func NewJwtMiddleware(config *JWTConfig) *jwtmiddleware.JWTMiddleware {
 		println("Something went wrong while configuring JWT middleware", err.Error())
 	}
 
-	return jwtmiddleware.New(jwtValidator.ValidateToken)
+	return jwtmiddleware.New(
+		jwtValidator.ValidateToken,
+		// Вытаскиваем токен из кук
+		jwtmiddleware.WithTokenExtractor(func(r *http.Request) (string, error) {
+			cookie, err := r.Cookie("token")
+			if err != nil {
+				return "", err
+			}
+			return cookie.Value, nil
+		}),
+	)
+
 }
 
 func GetClaimsFromContext(r *http.Request) (*CustomClaims, error) {
@@ -76,9 +86,9 @@ func GetClaimsFromContext(r *http.Request) (*CustomClaims, error) {
 	return customClaims, nil
 }
 
-func GenerateJWT(id string, jwtConfig *JWTConfig) (string, error) {
+func GenerateJWT(email string, jwtConfig *JWTConfig) (string, error) {
 	claims := CustomClaims{
-		UserID: id,
+		UserEmail: email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(2 * time.Hour)),
 			Issuer:    jwtConfig.Issuer,

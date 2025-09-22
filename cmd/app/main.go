@@ -18,11 +18,10 @@ func init() {
 func main() {
 	flag.Parse()
 	config := server.NewConfig()
-
 	if _, err := toml.DecodeFile(configPath, &config); err != nil {
 		println("Cannot get config file, using default values")
 	}
-
+	println(config.Storage.DbConnString)
 	if err := config.Storage.RunMigrations(); err != nil {
 		log.Fatalf("Migration error: %v", err.Error())
 	}

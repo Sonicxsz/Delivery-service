@@ -35,8 +35,10 @@ func (s *TagService) GetAll(cxt context.Context) ([]*dto.TagResponse, error) {
 	var response []*dto.TagResponse
 	for _, tag := range all {
 		response = append(response, &dto.TagResponse{
-			Id:   tag.Id,
-			Name: tag.Name,
+			Id:       tag.Id,
+			Name:     tag.Name,
+			Color:    tag.Color,
+			IsActive: tag.IsActive,
 		})
 	}
 
