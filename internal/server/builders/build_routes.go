@@ -44,32 +44,28 @@ func BuildRoutes(b *Builder) {
 	b.Router.HandleFunc(url+"/category/all", categoryHandler.GetAll()).Methods("GET")
 	b.Router.HandleFunc(url+"/category/{id}", categoryHandler.Delete()).Methods("DELETE")
 
+	// Защищенные роуты
+	JWTMiddleware := security.NewJwtMiddleware(b.JwtConfig)
+
+	protected := b.Router.PathPrefix("/api/v1").Subrouter()
+	protected.Use(JWTMiddleware.CheckJWT)
+
+	protected.HandleFunc("/user", userHandler.Get).Methods("GET")
+
 	//Catalog
 	catalogService := service.NewCatalogService(b.Store.CatalogRepository())
 	catalogHandler := handlers.NewCatalogHandler(catalogService)
 	b.Router.HandleFunc(url+"/catalog/all", catalogHandler.GetAll(b.Fs.Image)).Methods("GET")
-	b.Router.HandleFunc(url+"/catalog", catalogHandler.Create).Methods("POST")
-	b.Router.HandleFunc(url+"/catalog/{id}", catalogHandler.Delete).Methods("DELETE")
-	b.Router.HandleFunc(url+"/catalog", catalogHandler.Update).Methods("PATCH")
 	b.Router.HandleFunc(url+"/catalog/{id}", catalogHandler.GetById(b.Fs.Image)).Methods("GET")
-	b.Router.HandleFunc(url+"/catalog/add-image", catalogHandler.AddImage(b.Fs.Image)).Methods("POST")
 
+	protected.HandleFunc("/catalog", catalogHandler.Create).Methods("POST")
+	protected.HandleFunc("/catalog/{id}", catalogHandler.Delete).Methods("DELETE")
+	protected.HandleFunc("/catalog", catalogHandler.Update).Methods("PATCH")
+	protected.HandleFunc("/catalog/add-image", catalogHandler.AddImage(b.Fs.Image)).Methods("POST")
 }
 
 func BuildRoutesStatic(r *mux.Router, fsPath string) {
 	staticPrefix := fmt.Sprintf("/%s/", fsPath)
 	r.PathPrefix(staticPrefix).Handler(http.StripPrefix(staticPrefix, http.FileServer(http.Dir(fmt.Sprintf("./%s", fsPath)))))
 
-}
-
-func BuildProtectedRoutes(b *Builder) {
-	JWTMiddleware := security.NewJwtMiddleware(b.JwtConfig)
-
-	protected := b.Router.PathPrefix("/api/v1").Subrouter()
-	protected.Use(JWTMiddleware.CheckJWT)
-
-	protected.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Token is valid"))
-	}).Methods("POST")
-	// Будут защищенные api роуты
 }

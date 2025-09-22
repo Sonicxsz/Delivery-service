@@ -19,7 +19,6 @@ func (a *Api) configureRouter() {
 	}
 
 	builders.BuildRoutes(builder)
-	builders.BuildProtectedRoutes(builder)
 	builders.BuildRoutesStatic(router, a.config.FS.Path)
 
 	a.router = router

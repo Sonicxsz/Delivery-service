@@ -4,6 +4,9 @@ import (
 	"arabic/internal/dto"
 	"arabic/internal/model"
 	"arabic/internal/service"
+	"arabic/pkg/customError"
+	"arabic/pkg/logger"
+	security "arabic/pkg/security/auth"
 	"encoding/json"
 	"net/http"
 )
@@ -23,7 +26,6 @@ func (u *UserHandler) Create() http.HandlerFunc {
 		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 			respondError(w, http.StatusBadRequest, "Invalid request payload")
 			return
-			// TODO LOGGER
 		}
 
 		isNotValid, err := UserValidator(user)
@@ -31,7 +33,7 @@ func (u *UserHandler) Create() http.HandlerFunc {
 			respondError(w, http.StatusBadRequest, err.Error())
 			return
 		}
-
+		// TODO убрать пароль из ответа
 		user, err = u.service.CreateUser(r.Context(), user)
 		if err != nil {
 			handleServiceError(w, err, "CreateUser")
@@ -39,6 +41,25 @@ func (u *UserHandler) Create() http.HandlerFunc {
 		}
 		respondSuccess(w, http.StatusCreated, user)
 	}
+}
+
+func (u *UserHandler) Get(w http.ResponseWriter, r *http.Request) {
+	claims, err := security.GetClaimsFromContext(r)
+
+	if err != nil || claims.UserEmail == "" {
+		logger.Log.Error("UserHandler -> Get -> err: " + err.Error())
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, customError.ErrorAuthorize, nil), "User: Get")
+		return
+	}
+
+	user, err := u.service.GetUser(r.Context(), claims.UserEmail)
+
+	if err != nil {
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, customError.ErrorParse, nil), "Catalog: AddImage Decode")
+		return
+	}
+
+	respondSuccess(w, http.StatusOK, user)
 }
 
 func (u *UserHandler) Login() http.HandlerFunc {

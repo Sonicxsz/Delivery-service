@@ -8,10 +8,10 @@ type Catalog struct {
 	Description     string  `json:"description"`
 	Price           float32 `json:"price"`
 	Amount          int     `json:"amount"`
-	DiscountPercent float32 `json:"discountPercent"`
+	DiscountPercent float32 `json:"discount_percent"`
 	Sku             string  `json:"sku"`
-	CategoryId      uint    `json:"categoryId"`
-	ImageUrl        string  `json:"imageUrl"`
+	CategoryId      uint    `json:"category_id"`
+	ImageUrl        string  `json:"image_url"`
 	Weight          float32 `json:"weight"`
 }
 
