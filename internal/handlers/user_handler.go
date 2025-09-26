@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"arabic/internal/dto"
-	"arabic/internal/model"
 	"arabic/internal/service"
 	"arabic/pkg/customError"
 	"arabic/pkg/logger"
 	security "arabic/pkg/security/auth"
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 type UserHandler struct {
@@ -22,7 +22,7 @@ func NewUserHandler(service service.IUserService) *UserHandler {
 func (u *UserHandler) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		user := &model.User{}
+		user := &dto.UserCreateRequest{}
 		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 			respondError(w, http.StatusBadRequest, "Invalid request payload")
 			return
@@ -33,13 +33,14 @@ func (u *UserHandler) Create() http.HandlerFunc {
 			respondError(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		// TODO убрать пароль из ответа
-		user, err = u.service.CreateUser(r.Context(), user)
+
+		err = u.service.CreateUser(r.Context(), user)
+
 		if err != nil {
 			handleServiceError(w, err, "CreateUser")
 			return
 		}
-		respondSuccess(w, http.StatusCreated, user)
+		respondSuccess(w, http.StatusCreated, nil)
 	}
 }
 
@@ -55,7 +56,7 @@ func (u *UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 	user, err := u.service.GetUser(r.Context(), claims.UserEmail)
 
 	if err != nil {
-		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, customError.ErrorParse, nil), "Catalog: AddImage Decode")
+		handleServiceError(w, err, "User: Get")
 		return
 	}
 
@@ -63,7 +64,6 @@ func (u *UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserHandler) Login() http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req dto.UserLoginRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -71,6 +71,7 @@ func (u *UserHandler) Login() http.HandlerFunc {
 			return
 		}
 		user, token, err := u.service.Login(r.Context(), req.Email, req.Password)
+
 		if err != nil {
 			handleServiceError(w, err, "Login")
 			return
@@ -78,4 +79,58 @@ func (u *UserHandler) Login() http.HandlerFunc {
 		setAuthCookie(w, token)
 		respondSuccess(w, http.StatusOK, user)
 	}
+}
+
+func (u *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
+	claims, err := security.GetClaimsFromContext(r)
+
+	req := dto.UserUpdateRequest{}
+	err = json.NewDecoder(r.Body).Decode(&req)
+
+	if err != nil {
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, customError.ErrorParse, nil), "User: Decode error")
+		return
+	}
+
+	if ok, errStrings := req.IsValid(); !ok {
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, strings.Join(errStrings, "; "), nil), "User: Validation error")
+		return
+	}
+
+	req.Id = claims.Id
+	err = u.service.UpdateUserInfo(r.Context(), &req)
+
+	if err != nil {
+		handleServiceError(w, err, "User: Service error")
+		return
+	}
+
+	respondSuccess(w, http.StatusOK, nil)
+}
+
+func (u *UserHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
+	claims, err := security.GetClaimsFromContext(r)
+
+	req := dto.UserAddressUpdateRequest{}
+	err = json.NewDecoder(r.Body).Decode(&req)
+
+	if err != nil {
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, customError.ErrorParse, nil), "User: Decode error")
+		return
+	}
+
+	if ok, errStrings := req.IsValid(); !ok {
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, strings.Join(errStrings, "; "), nil), "User: Validation error")
+		return
+	}
+
+	req.Id = claims.Id
+	err = u.service.UpdateUserAddress(r.Context(), &req)
+
+	if err != nil {
+		handleServiceError(w, err, "User: Service error")
+		return
+	}
+
+	respondSuccess(w, http.StatusOK, nil)
 }

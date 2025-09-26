@@ -7,6 +7,7 @@ import (
 	"arabic/pkg/customError"
 	"arabic/pkg/fs"
 	"arabic/pkg/logger"
+	"arabic/pkg/queryBuilder"
 	"context"
 	"fmt"
 	"net/http"
@@ -70,7 +71,17 @@ func (c *CatalogService) Create(cxt context.Context, req *dto.CatalogCreateReque
 }
 
 func (c *CatalogService) Update(cxt context.Context, req *dto.CatalogUpdateRequest) error {
-	query, values := c.prepareQueryForUpdate(req)
+	qb := queryBuilder.NewQueryBuilder(true).
+		Set("name", req.Name).
+		Set("description", req.Description).
+		Set("price", req.Price).
+		Set("discount_percent", req.DiscountPercent).
+		Set("amount", req.Amount).
+		Set("category_id", req.CategoryId).
+		Set("sku", req.Sku).
+		Set("weight", req.Weight)
+
+	query, values := qb.BuildUpdateQuery("public.catalogs", "id", req.Id)
 	ok, err := c.CatalogRepository.Update(cxt, query, values)
 
 	if err != nil {
@@ -103,8 +114,10 @@ func (c *CatalogService) GetById(ctx context.Context, id uint, imagePrefix strin
 	return resp, nil
 }
 
-func (c *CatalogService) AddImage(cxt context.Context, req *dto.AddImageRequest, fs fs.IFileSystemImage) (string, error) {
+// TODO Реализовать функционал удаления предыдущего изображения
 
+func (c *CatalogService) AddImage(cxt context.Context, req *dto.AddImageRequest, fs fs.IFileSystemImage) (string, error) {
+	// Вытаскиваем расширение файла
 	extension, err := fs.GetImageExtension(&req.Image)
 
 	if err != nil {
@@ -112,6 +125,7 @@ func (c *CatalogService) AddImage(cxt context.Context, req *dto.AddImageRequest,
 		return "", customError.NewServiceError(http.StatusBadRequest, "Image extension not found. Provide correct data", nil)
 	}
 
+	// Проверяем входит ли данное расширение в список поддерживаемых
 	ok := fs.IsSupportingExtension(extension)
 
 	if !ok {
@@ -119,14 +133,19 @@ func (c *CatalogService) AddImage(cxt context.Context, req *dto.AddImageRequest,
 		return "", customError.NewServiceError(http.StatusBadRequest, fmt.Sprintf("Extension of image %s not support, pls provide correct one", extension), nil)
 	}
 
+	// Сохраняем файл в хранилище
 	filename, err := fs.SafeImageToStorage(extension, &req.Image)
-
 	if err != nil {
 		logger.Log.Error(fmt.Sprintf("Image saving error: %s", err.Error()))
 		return "", customError.NewServiceError(http.StatusBadRequest, "Something went wrong while saving image. Check provided data or try later...", nil)
 	}
 
-	query, values := c.constructQueryForImageUpdate(req.Id, filename)
+	// Формируем sql запрос для обновления изображения
+	qb := queryBuilder.NewQueryBuilder(true).
+		Set("image_url", filename)
+
+	query, values := qb.BuildUpdateQuery("public.catalogs", "id", req.Id)
+
 	ok, err = c.CatalogRepository.Update(cxt, query, values)
 
 	if err != nil {
@@ -158,85 +177,6 @@ func (c *CatalogService) GetAll(cxt context.Context, imagePrefix string) ([]*dto
 	}
 
 	return catalogResp, nil
-}
-
-func (c *CatalogService) constructQueryForImageUpdate(userId uint, imageUrl string) (string, []any) {
-	values := make([]any, 0)
-	values = append(values, userId)
-
-	query := fmt.Sprintf("image_url = $%d", 2)
-	values = append(values, imageUrl)
-
-	return query, values
-}
-
-// Покрыть тестом
-func (c *CatalogService) prepareQueryForUpdate(req *dto.CatalogUpdateRequest) (string, []any) {
-	fieldsForUpdate := make([]string, 0)
-	values := make([]any, 0)
-
-	query := ""
-	paramIndex := 1
-
-	values = append(values, req.Id)
-	paramIndex++
-
-	if req.Name != nil {
-		fieldsForUpdate = append(fieldsForUpdate, fmt.Sprintf("name = $%d", paramIndex))
-		values = append(values, *req.Name)
-		paramIndex++
-	}
-
-	if req.Description != nil {
-		fieldsForUpdate = append(fieldsForUpdate, fmt.Sprintf("description = $%d", paramIndex))
-		values = append(values, *req.Description)
-		paramIndex++
-	}
-
-	if req.Price != nil {
-		fieldsForUpdate = append(fieldsForUpdate, fmt.Sprintf("price = $%d", paramIndex))
-		values = append(values, *req.Price)
-		paramIndex++
-	}
-
-	if req.DiscountPercent != nil {
-		fieldsForUpdate = append(fieldsForUpdate, fmt.Sprintf("discount_percent = $%d", paramIndex))
-		values = append(values, *req.DiscountPercent)
-		paramIndex++
-	}
-
-	if req.Amount != nil {
-		fieldsForUpdate = append(fieldsForUpdate, fmt.Sprintf("amount = $%d", paramIndex))
-		values = append(values, *req.Amount)
-		paramIndex++
-	}
-
-	if req.CategoryId != nil {
-		fieldsForUpdate = append(fieldsForUpdate, fmt.Sprintf("category_id = $%d", paramIndex))
-		values = append(values, *req.CategoryId)
-		paramIndex++
-	}
-
-	if req.Sku != nil {
-		fieldsForUpdate = append(fieldsForUpdate, fmt.Sprintf("sku = $%d", paramIndex))
-		values = append(values, *req.Sku)
-		paramIndex++
-	}
-	if req.Weight != nil {
-		fieldsForUpdate = append(fieldsForUpdate, fmt.Sprintf("weight = $%d", paramIndex))
-		values = append(values, *req.Weight)
-		paramIndex++
-	}
-
-	fieldsLength := len(fieldsForUpdate)
-	for idx, val := range fieldsForUpdate {
-		query += val
-		if idx+1 != fieldsLength {
-			query += ", "
-		}
-	}
-
-	return query, values
 }
 
 func (c *CatalogService) getCatalogUniqFieldError(err error, catalog *model.Catalog) error {

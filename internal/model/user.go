@@ -17,11 +17,9 @@ type UserFullInfo struct {
 }
 
 type UserAddress struct {
-	Apartment  string `json:"apartment"`
-	House      string `json:"house"`
-	Street     string `json:"street"`
-	City       string `json:"city"`
-	PostalCode string `json:"postal_code"`
-	Country    string `json:"country"`
-	Region     string `json:"region"`
+	Apartment string `json:"apartment"`
+	House     string `json:"house"`
+	Street    string `json:"street"`
+	City      string `json:"city"`
+	Region    string `json:"region"`
 }

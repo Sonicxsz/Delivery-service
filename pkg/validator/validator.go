@@ -35,6 +35,7 @@ var (
 	emailRegex    = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	passwordRegex = regexp.MustCompile(`^[a-zA-Z0-9.!_@#$%^&*].{8,}`)
 	usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]{3,16}$`)
+	phoneRegex    = regexp.MustCompile(`^(?:\+7|8)\d{10}$`)
 )
 
 func New() *Validator {
@@ -76,6 +77,14 @@ func (v *StringValidator) IsMin(min int) *StringValidator {
 	if length < min {
 		v.errs.errors = append(v.errs.errors, fmt.Sprintf("[%s] - Min required length is %d, Provided: %d", v.name, min, length))
 	}
+	return v
+}
+
+func (v *StringValidator) IsPhoneNumber() *StringValidator {
+	if !phoneRegex.MatchString(v.value) {
+		v.errs.errors = append(v.errs.errors, "must be a valid Russian phone number (+79123456789 or 89123456789)")
+	}
+
 	return v
 }
 

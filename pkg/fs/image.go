@@ -20,6 +20,7 @@ type IFileSystemImage interface {
 	GetImageExtension(base64Image *string) (string, error)
 	IsSupportingExtension(extension string) bool
 	SafeImageToStorage(extension string, base64Image *string) (string, error)
+	//DeleteImage(filename string) bool
 	GetPath() string
 }
 
