@@ -88,19 +88,19 @@ func (c *CatalogHandler) Update(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 
 	if err != nil {
-		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, customError.ErrorParse, nil), "CategoryHandle Update")
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, customError.ErrorParse, nil), "Catalog: Parse error")
 		return
 	}
 
 	if ok, errStrings := req.IsValid(); !ok {
-		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, strings.Join(errStrings, "; "), nil), "CategoryHandle GetAll")
+		handleServiceError(w, customError.NewServiceError(http.StatusBadRequest, strings.Join(errStrings, "; "), nil), "Catalog: validation error")
 		return
 	}
 
 	err = c.service.Update(r.Context(), &req)
 
 	if err != nil {
-		handleServiceError(w, err, "CategoryHandle Update")
+		handleServiceError(w, err, "Catalog: Service error")
 		return
 	}
 

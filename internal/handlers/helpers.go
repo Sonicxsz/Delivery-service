@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"arabic/internal/model"
+	"arabic/internal/dto"
 	"arabic/pkg/customError"
+	"arabic/pkg/logger"
 	"arabic/pkg/validator"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"log"
 	"net/http"
 	"runtime"
 	"strings"
@@ -49,7 +49,7 @@ func NewErrorMessage(path, error string, status int) *ErrorMessage[interface{}] 
 	}
 }
 
-func UserValidator(user *model.User) (bool, error) {
+func UserValidator(user *dto.UserCreateRequest) (bool, error) {
 	v := validator.New()
 	v.CheckString(user.Email, "Email").IsEmail()
 	v.CheckString(user.Username, "Username").IsValidUsername()
@@ -69,7 +69,7 @@ func handleServiceError(w http.ResponseWriter, err error, operation string) {
 	if errors.As(err, &serviceErr) {
 		respondError(w, serviceErr.Code, serviceErr.Message)
 	} else {
-		log.Printf("Unexpected error type in %s: %v", operation, err)
+		logger.Log.Error("Unexpected error type in %s: %v", operation, err)
 		respondError(w, http.StatusInternalServerError, customError.Error500)
 	}
 }

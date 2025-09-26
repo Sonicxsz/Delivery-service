@@ -27,6 +27,7 @@ func (j *JWTConfig) emptyFunc(context.Context) (any, error) {
 
 type CustomClaims struct {
 	UserEmail string `json:"email"`
+	Id        int64  `json:"id"`
 	jwt.RegisteredClaims
 }
 
@@ -86,9 +87,10 @@ func GetClaimsFromContext(r *http.Request) (*CustomClaims, error) {
 	return customClaims, nil
 }
 
-func GenerateJWT(email string, jwtConfig *JWTConfig) (string, error) {
+func GenerateJWT(email string, id int64, jwtConfig *JWTConfig) (string, error) {
 	claims := CustomClaims{
 		UserEmail: email,
+		Id:        id,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(2 * time.Hour)),
 			Issuer:    jwtConfig.Issuer,

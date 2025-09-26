@@ -4,7 +4,9 @@
 CREATE TABLE public.roles (
                               id SERIAL PRIMARY KEY,
                               code VARCHAR(50) UNIQUE NOT NULL,
-                              name VARCHAR(100) NOT NULL
+                              name VARCHAR(100) NOT NULL,
+                              created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                              updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 INSERT INTO public.roles (code, name) VALUES
@@ -36,10 +38,11 @@ CREATE TABLE public.users
     house VARCHAR(50) NOT NULL DEFAULT '',
     street VARCHAR(255) NOT NULL DEFAULT '',
     city VARCHAR(100) NOT NULL DEFAULT '',
-    postal_code VARCHAR(20) DEFAULT '',
-    country VARCHAR(100) DEFAULT 'Россия',
     region VARCHAR(100) DEFAULT 'Чеченская республика',
-    CONSTRAINT fk_role FOREIGN KEY (role_code) REFERENCES roles(code)
+    CONSTRAINT fk_role FOREIGN KEY (role_code) REFERENCES roles(code),
+
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE public.categories
@@ -60,7 +63,9 @@ CREATE TABLE public.tags
     name VARCHAR(255) UNIQUE NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT true,
     usage_count INTEGER DEFAULT 0,
-    color VARCHAR(7) NOT NULL DEFAULT '#FFFFFF'
+    color VARCHAR(7) NOT NULL DEFAULT '#FFFFFF',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE public.catalogs
