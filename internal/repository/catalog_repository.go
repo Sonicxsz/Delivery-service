@@ -17,7 +17,7 @@ type ICatalogRepository interface {
 	FindAll(ctx context.Context) ([]*model.Catalog, error)
 	Delete(ctx context.Context, id uint) (bool, error)
 	Create(ctx context.Context, category *model.Catalog) (*model.Catalog, error)
-	Update(ctx context.Context, query string, values []any) (bool, error)
+	Update(ctx context.Context, queryParts string, values []any) (bool, error)
 	FindById(ctx context.Context, id uint) (*model.Catalog, bool, error)
 }
 
@@ -27,8 +27,7 @@ func NewCatalogRepository(db *pgxpool.Pool) *CatalogRepository {
 	}
 }
 
-func (c *CatalogRepository) Update(ctx context.Context, queryParts string, values []any) (bool, error) {
-	query := "update public.catalogs set " + " " + queryParts + " WHERE id = $1"
+func (c *CatalogRepository) Update(ctx context.Context, query string, values []any) (bool, error) {
 	tag, err := c.db.Exec(ctx, query, values...)
 
 	if err != nil {
