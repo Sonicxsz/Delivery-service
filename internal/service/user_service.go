@@ -114,13 +114,7 @@ func (s *UserService) UpdateUserInfo(ctx context.Context, req *dto.UserUpdateReq
 
 	query, values := qb.BuildUpdateQuery("public.users", "id", req.Id)
 
-	// Юзер не предоставил данные для измения(пустой запрос)
-	if len(values) < 2 {
-		return customError.NewServiceError(http.StatusBadRequest, customError.ErrorWrongPayload, nil)
-	}
-
 	ok, err := s.userRepository.Update(ctx, query, values)
-
 	if err != nil {
 		logger.Log.Error("UserService -> UpdateUser -> err -> " + err.Error())
 		return customError.NewServiceError(http.StatusInternalServerError, customError.Error500, err)

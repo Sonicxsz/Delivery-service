@@ -35,6 +35,11 @@ func (u *UserUpdateRequest) IsValid() (bool, []string) {
 		v.CheckString(*u.SecondName, "SecondName").IsMin(4).IsMax(20)
 	}
 
+	if v.ValidatedFieldsCount() < 1 {
+		v.AddError("Required at least one field")
+		return false, v.GetErrors()
+	}
+
 	return !v.HasErrors(), v.GetErrors()
 }
 
