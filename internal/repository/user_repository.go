@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"arabic/internal/dto"
 	"arabic/internal/model"
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,7 +17,7 @@ func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
 }
 
 type IUserRepository interface {
-	Create(cxt context.Context, u *dto.UserCreateRequest) error
+	Create(cxt context.Context, u *model.User) error
 	FindByEmail(cxt context.Context, email string) (*model.UserFullInfo, error)
 	Update(ctx context.Context, query string, values []any) (bool, error)
 }
@@ -28,7 +27,7 @@ var (
 	searchUserByEmail = "SELECT id, username, password, email, role_code, first_name, second_name, phone_number, apartment, house, street, city, region   FROM public.users WHERE email = $1"
 )
 
-func (ur *UserRepository) Create(cxt context.Context, u *dto.UserCreateRequest) error {
+func (ur *UserRepository) Create(cxt context.Context, u *model.User) error {
 	user := model.User{}
 	err := ur.db.QueryRow(cxt, insertUser, u.Email, u.Username, u.Password).Scan(&user.Id)
 	if err != nil {

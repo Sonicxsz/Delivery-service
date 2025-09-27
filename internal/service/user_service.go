@@ -2,6 +2,7 @@ package service
 
 import (
 	"arabic/internal/dto"
+	"arabic/internal/model"
 	"arabic/internal/repository"
 	"arabic/pkg/customError"
 	"arabic/pkg/logger"
@@ -33,13 +34,18 @@ func NewUserService(userRepo repository.IUserRepository, jwtConfig *security.JWT
 	}
 }
 
-func (s *UserService) CreateUser(ctx context.Context, user *dto.UserCreateRequest) error {
-	hashedPassword, err := security.GenerateHashFromPassword(user.Password)
+func (s *UserService) CreateUser(ctx context.Context, req *dto.UserCreateRequest) error {
+	hashedPassword, err := security.GenerateHashFromPassword(req.Password)
 	if err != nil {
 		return err
 	}
 
-	user.Password = hashedPassword
+	user := &model.User{
+		Password: hashedPassword,
+		Email:    req.Email,
+		Username: req.Username,
+	}
+
 	err = s.userRepository.Create(ctx, user)
 
 	if err == nil {
@@ -157,7 +163,7 @@ func (s *UserService) UpdateUserAddress(cxt context.Context, req *dto.UserAddres
 	return nil
 }
 
-func (s *UserService) handleDuplicateErrorMessage(err error, user *dto.UserCreateRequest) error {
+func (s *UserService) handleDuplicateErrorMessage(err error, user *model.User) error {
 	if strings.Contains(err.Error(), "email") {
 		return customError.NewServiceError(http.StatusConflict, fmt.Sprintf("User with this email= [%s] already exists", user.Email), err)
 	}
