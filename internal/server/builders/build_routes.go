@@ -50,8 +50,6 @@ func BuildRoutes(b *Builder) {
 	protected := b.Router.PathPrefix("/api/v1").Subrouter()
 	protected.Use(JWTMiddleware.CheckJWT)
 
-	protected.HandleFunc("/user", userHandler.Get).Methods("GET")
-
 	//Catalog
 	catalogService := service.NewCatalogService(b.Store.CatalogRepository())
 	catalogHandler := handlers.NewCatalogHandler(catalogService)
@@ -62,10 +60,14 @@ func BuildRoutes(b *Builder) {
 	protected.HandleFunc("/catalog/{id}", catalogHandler.Delete).Methods("DELETE")
 	protected.HandleFunc("/catalog", catalogHandler.Update).Methods("PATCH")
 	protected.HandleFunc("/catalog/add-image", catalogHandler.AddImage(b.Fs.Image)).Methods("POST")
+
+	// User
+	protected.HandleFunc("/user/profile", userHandler.Update).Methods("PATCH")
+	protected.HandleFunc("/user/profile/address", userHandler.UpdateAddress).Methods("POST")
+	protected.HandleFunc("/user", userHandler.Get).Methods("GET")
 }
 
 func BuildRoutesStatic(r *mux.Router, fsPath string) {
 	staticPrefix := fmt.Sprintf("/%s/", fsPath)
 	r.PathPrefix(staticPrefix).Handler(http.StripPrefix(staticPrefix, http.FileServer(http.Dir(fmt.Sprintf("./%s", fsPath)))))
-
 }

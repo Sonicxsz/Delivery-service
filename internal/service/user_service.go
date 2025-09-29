@@ -6,6 +6,7 @@ import (
 	"arabic/internal/repository"
 	"arabic/pkg/customError"
 	"arabic/pkg/logger"
+	"arabic/pkg/queryBuilder"
 	"arabic/pkg/security/auth"
 	"context"
 	"fmt"
@@ -14,9 +15,11 @@ import (
 )
 
 type IUserService interface {
-	CreateUser(ctx context.Context, user *model.User) (*model.User, error)
-	Login(ctx context.Context, email, password string) (*model.User, string, error)
+	CreateUser(ctx context.Context, user *dto.UserCreateRequest) error
+	Login(ctx context.Context, email, password string) (*dto.UserGetResponse, string, error)
 	GetUser(ctx context.Context, email string) (*dto.UserGetResponse, error)
+	UpdateUserInfo(ctx context.Context, req *dto.UserUpdateRequest) error
+	UpdateUserAddress(cxt context.Context, req *dto.UserAddressUpdateRequest) error
 }
 
 type UserService struct {
@@ -31,38 +34,60 @@ func NewUserService(userRepo repository.IUserRepository, jwtConfig *security.JWT
 	}
 }
 
-func (s *UserService) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
-	hashedPassword, err := security.GenerateHashFromPassword(user.Password)
+func (s *UserService) CreateUser(ctx context.Context, req *dto.UserCreateRequest) error {
+	hashedPassword, err := security.GenerateHashFromPassword(req.Password)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	user.Password = hashedPassword
-	created, err := s.userRepository.Create(ctx, user)
+	user := &model.User{
+		Password: hashedPassword,
+		Email:    req.Email,
+		Username: req.Username,
+	}
+
+	err = s.userRepository.Create(ctx, user)
 
 	if err == nil {
-		return created, nil
+		return nil
 	}
 
 	if strings.Contains(err.Error(), "duplicate key") {
-		return nil, s.handleDuplicateErrorMessage(err, user)
+		return s.handleDuplicateErrorMessage(err, user)
 	}
 
-	return nil, customError.NewServiceError(http.StatusInternalServerError, "Failed to create user", err)
+	return customError.NewServiceError(http.StatusInternalServerError, "Failed to create user", err)
 }
 
-func (s *UserService) Login(ctx context.Context, email, password string) (*model.User, string, error) {
-	user, err := s.verifyCredentials(ctx, email, password)
+//func Log()
+
+func (s *UserService) Login(ctx context.Context, email, password string) (*dto.UserGetResponse, string, error) {
+	user, err := s.userRepository.FindByEmail(ctx, email)
+
 	if err != nil {
-		return nil, "", err
+		security.CompareHashAndPassword("Dummy-password-for-time", password)
+		return nil, "", customError.NewServiceError(http.StatusBadRequest, "Invalid username or password", err)
 	}
 
-	token, err := security.GenerateJWT(user.Email, s.jwtConfig)
+	ok := security.CompareHashAndPassword(password, user.Password)
+	if !ok {
+		return nil, "", customError.NewServiceError(http.StatusBadRequest, "Invalid username or password", err)
+	}
+
+	token, err := security.GenerateJWT(user.Email, user.Id, s.jwtConfig)
 	if err != nil {
 		return nil, "", customError.NewServiceError(http.StatusInternalServerError, "Something went wrong. pls try later", err)
 	}
 
-	return user, token, nil
+	resp := &dto.UserGetResponse{
+		Email:      user.Email,
+		SecondName: user.SecondName,
+		FirstName:  user.FirstName,
+		Id:         user.Id,
+		Username:   user.Username,
+	}
+
+	return resp, token, nil
 }
 
 func (s *UserService) GetUser(ctx context.Context, email string) (*dto.UserGetResponse, error) {
@@ -74,21 +99,64 @@ func (s *UserService) GetUser(ctx context.Context, email string) (*dto.UserGetRe
 	}
 
 	resp := dto.UserGetResponse{
-		Email:    user.Email,
-		Username: user.Username,
+		Email:      user.Email,
+		Username:   user.Username,
+		FirstName:  user.FirstName,
+		SecondName: user.SecondName,
+		Id:         user.Id,
 	}
 
 	return &resp, nil
 }
 
-func (s *UserService) verifyCredentials(ctx context.Context, email, password string) (*model.User, error) {
-	user, err := s.userRepository.FindByEmail(ctx, email)
+func (s *UserService) UpdateUserInfo(ctx context.Context, req *dto.UserUpdateRequest) error {
+	qb := queryBuilder.NewQueryBuilder(true).
+		Set("first_name", req.FirstName).
+		Set("second_name", req.SecondName)
 
-	if err != nil || !security.CompareHashAndPassword(password, user.Password) {
-		return nil, customError.NewServiceError(http.StatusBadRequest, "Invalid username or password", err)
+	query, values := qb.BuildUpdateQuery("public.users", "id", req.Id)
+
+	ok, err := s.userRepository.Update(ctx, query, values)
+	if err != nil {
+		logger.Log.Error("UserService -> UpdateUser -> err -> " + err.Error())
+		return customError.NewServiceError(http.StatusInternalServerError, customError.Error500, err)
 	}
 
-	return user, nil
+	if !ok {
+		return customError.NewServiceError(http.StatusInternalServerError, customError.ErrorNotFoundById, err)
+	}
+
+	return nil
+}
+
+func (s *UserService) UpdateUserAddress(cxt context.Context, req *dto.UserAddressUpdateRequest) error {
+	// Подумать нужно ли перенести формирование sql запроса на уровень репозитория
+	qb := queryBuilder.NewQueryBuilder(false).
+		Set("region", req.Region).
+		Set("city", req.City).
+		Set("street", req.Street).
+		Set("house", req.House).
+		Set("apartment", req.Apartment)
+
+	query, values := qb.BuildUpdateQuery("public.users", "id", req.Id)
+
+	if values == nil {
+		return customError.NewServiceError(http.StatusInternalServerError, customError.ErrorWrongPayload, nil)
+	}
+
+	// Нужно будет проверить корректность предоставленного адреса
+	ok, err := s.userRepository.Update(cxt, query, values)
+
+	if err != nil {
+		logger.Log.Error("UserService -> UpdateUserAddress -> err -> " + err.Error())
+		return customError.NewServiceError(http.StatusInternalServerError, customError.Error500, err)
+	}
+
+	if !ok {
+		return customError.NewServiceError(http.StatusInternalServerError, customError.ErrorNotFoundById, err)
+	}
+
+	return nil
 }
 
 func (s *UserService) handleDuplicateErrorMessage(err error, user *model.User) error {
