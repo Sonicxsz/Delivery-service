@@ -59,6 +59,8 @@ func (s *UserService) CreateUser(ctx context.Context, req *dto.UserCreateRequest
 	return customError.NewServiceError(http.StatusInternalServerError, "Failed to create user", err)
 }
 
+//func Log()
+
 func (s *UserService) Login(ctx context.Context, email, password string) (*dto.UserGetResponse, string, error) {
 	user, err := s.userRepository.FindByEmail(ctx, email)
 
